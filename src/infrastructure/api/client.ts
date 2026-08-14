@@ -10,6 +10,7 @@ import { env } from "@/config/env";
 import type {
   AppNotification,
   AssistantMessage,
+  OperationsDashboard,
   Snapshot,
   SyncOperationResult,
 } from "@/domain/entities";
@@ -185,6 +186,18 @@ export const api = {
 
   async markNotificationRead(notificationId: string): Promise<AppNotification> {
     return request<AppNotification>(`/notifications/${notificationId}/read`, { method: "POST" });
+  },
+
+  async operationsDashboard(day?: string): Promise<OperationsDashboard> {
+    const capacityPath = day
+      ? `/operations/capacity?day=${encodeURIComponent(day)}`
+      : "/operations/capacity";
+    const [workload, capacity, socialWork] = await Promise.all([
+      request<OperationsDashboard["workload"]>("/operations/workload"),
+      request<OperationsDashboard["capacity"]>(capacityPath),
+      request<OperationsDashboard["socialWork"]>("/operations/social-work"),
+    ]);
+    return { workload, capacity, socialWork };
   },
 
   // ----------------------------------------------------------- asistente

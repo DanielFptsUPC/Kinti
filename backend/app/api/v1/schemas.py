@@ -259,6 +259,11 @@ class ContactFamilyRequest(ApiModel):
     operation_id: UUID | None = None
 
 
+class ReferSocialWorkRequest(ApiModel):
+    internal_note: Note | None = None
+    operation_id: UUID | None = None
+
+
 class ResolveAlertRequest(ApiModel):
     action_taken: AlertAction
     internal_note: Note | None = None
@@ -290,6 +295,7 @@ OperationType = Literal[
     "report_barrier",
     "record_feeling",
     "mark_family_contacted",
+    "refer_social_work",
     "resolve_alert",
     "create_milestone",
     "reschedule_milestone",

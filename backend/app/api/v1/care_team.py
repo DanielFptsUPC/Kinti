@@ -161,6 +161,33 @@ async def contact_family(
     return schemas.AlertOut.model_validate(care_routes.alert_payload(context, stored))
 
 
+@router.post("/alerts/{alert_id}/refer-social-work", response_model=schemas.AlertOut)
+async def refer_social_work(
+    alert_id: UUID,
+    body: schemas.ReferSocialWorkRequest,
+    user: CareTeamUser,
+    session: SessionDep,
+) -> schemas.AlertOut:
+    try:
+        alert = await alerts_service.get_alert(session, alert_id)
+        await patients_service.require_patient_access(session, user, alert.patient_id)
+        await alerts_service.refer_to_social_work(
+            session,
+            actor=user,
+            alert=alert,
+            internal_note=body.internal_note,
+            operation_id=body.operation_id,
+        )
+    except DomainError as exc:
+        await session.rollback()
+        raise exc.as_http() from exc
+
+    await session.commit()
+    context = await care_routes.load_context(session, [alert.patient_id])
+    stored = next(a for a in context.alerts if a.id == alert_id)
+    return schemas.AlertOut.model_validate(care_routes.alert_payload(context, stored))
+
+
 @router.post("/alerts/{alert_id}/resolve", response_model=schemas.AlertOut)
 async def resolve_alert(
     alert_id: UUID,

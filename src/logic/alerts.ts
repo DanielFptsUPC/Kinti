@@ -43,6 +43,20 @@ export function markFamilyContacted(alert: BarrierAlert): BarrierAlert {
   };
 }
 
+/** La derivación cambia el responsable operativo, pero no cierra la barrera. */
+export function referAlertToSocialWork(
+  alert: BarrierAlert,
+  internalNote?: string,
+): BarrierAlert {
+  if (alert.status === "resolved") return alert;
+  return {
+    ...alert,
+    status: "in_progress",
+    actionTaken: "social_work_referral",
+    internalNote: internalNote?.trim() ? internalNote.trim() : alert.internalNote,
+  };
+}
+
 export interface ResolveBarrierAlertInput {
   actionTaken: AlertActionType;
   internalNote?: string;

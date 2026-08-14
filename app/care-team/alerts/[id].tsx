@@ -18,7 +18,6 @@ import { ALERT_ACTION_LABEL, BARRIER_CATEGORY_LABEL, type AlertActionType } from
 const ACTION_ORDER: AlertActionType[] = [
   "guidance",
   "reschedule",
-  "social_work_referral",
   "lodging_coordination",
   "transport_coordination",
   "other",
@@ -31,6 +30,7 @@ export default function AlertDetailScreen() {
   const milestones = useKintiStore((s) => s.milestones);
   const patients = useKintiStore((s) => s.patients);
   const markAlertFamilyContacted = useKintiStore((s) => s.markAlertFamilyContacted);
+  const referAlertToSocialWork = useKintiStore((s) => s.referAlertToSocialWork);
   const resolveAlert = useKintiStore((s) => s.resolveAlert);
 
   const alert = alerts.find((a) => a.id === id);
@@ -46,6 +46,7 @@ export default function AlertDetailScreen() {
   const isResolved = alert.status === "resolved";
   const requiresDate = actionTaken === "reschedule";
   const canResolve = actionTaken !== null && (!requiresDate || Boolean(newScheduledAt));
+  const isReferredToSocialWork = alert.actionTaken === "social_work_referral";
 
   async function handleResolve() {
     if (!actionTaken || !canResolve) return;
@@ -99,6 +100,21 @@ export default function AlertDetailScreen() {
               onPress={() => void markAlertFamilyContacted(alert.id)}
               disabled={alert.familyContacted}
             />
+
+            <View style={styles.secondaryAction}>
+              <Button
+                label={
+                  isReferredToSocialWork
+                    ? "Derivado a Servicio Social ✓"
+                    : "Derivar a Servicio Social"
+                }
+                icon="people"
+                variant="secondary"
+                onPress={() => void referAlertToSocialWork(alert.id, internalNote)}
+                disabled={isReferredToSocialWork}
+                accessibilityHint="Mantiene la alerta abierta y registra el traspaso al área de apoyo"
+              />
+            </View>
 
             <Text style={styles.sectionTitle}>Acción</Text>
             <View style={styles.chipRow}>
@@ -234,6 +250,9 @@ const styles = StyleSheet.create({
   },
   actions: {
     marginTop: spacing.xxl,
+  },
+  secondaryAction: {
+    marginTop: spacing.md,
   },
   resolvedCard: {
     flexDirection: "row",

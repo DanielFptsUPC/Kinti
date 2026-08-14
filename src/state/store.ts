@@ -59,6 +59,7 @@ interface StoreState extends DomainState {
   reportBarrier: (input: ReportBarrierInput) => Promise<void>;
   addFeeling: (patientId: string, mood: EmotionKey) => Promise<void>;
   markAlertFamilyContacted: (alertId: string) => Promise<void>;
+  referAlertToSocialWork: (alertId: string, internalNote?: string) => Promise<void>;
   resolveAlert: (alertId: string, input: ResolveAlertInput) => Promise<void>;
   rescheduleMilestoneDate: (milestoneId: string, newScheduledAt: string) => Promise<void>;
   registerMilestone: (input: CreateMilestoneInput) => Promise<void>;
@@ -204,6 +205,11 @@ export const useKintiStore = create<StoreState>()((set, get) => {
     markAlertFamilyContacted: async (alertId) => {
       const { repository } = await getContainer();
       await command(() => repository.markFamilyContacted(alertId));
+    },
+
+    referAlertToSocialWork: async (alertId, internalNote) => {
+      const { repository } = await getContainer();
+      await command(() => repository.referAlertToSocialWork(alertId, internalNote));
     },
 
     resolveAlert: async (alertId, input) => {

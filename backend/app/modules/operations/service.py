@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from math import ceil
+from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -130,11 +131,18 @@ async def capacity(
     return rows
 
 
-async def social_work_queue(session: AsyncSession) -> list[tuple[BarrierAlert, Patient, str]]:
+async def social_work_queue(
+    session: AsyncSession, patient_ids: list[UUID]
+) -> list[tuple[BarrierAlert, Patient, str]]:
+    if not patient_ids:
+        return []
     alerts = list(
         await session.scalars(
             select(BarrierAlert)
-            .where(BarrierAlert.status != "resolved")
+            .where(
+                BarrierAlert.status != "resolved",
+                BarrierAlert.patient_id.in_(patient_ids),
+            )
             .order_by(BarrierAlert.created_at)
         )
     )
@@ -155,4 +163,3 @@ async def social_work_queue(session: AsyncSession) -> list[tuple[BarrierAlert, P
 def default_window(day: datetime) -> tuple[datetime, datetime]:
     start = day.replace(hour=0, minute=0, second=0, microsecond=0)
     return start, start + timedelta(days=1)
-

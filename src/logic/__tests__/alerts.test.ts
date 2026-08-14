@@ -2,6 +2,7 @@ import {
   confirmMilestoneAttendance,
   createBarrierAlert,
   markFamilyContacted,
+  referAlertToSocialWork,
   rescheduleMilestone,
   resolveBarrierAlert,
 } from "@/logic/alerts";
@@ -70,6 +71,26 @@ describe("markFamilyContacted", () => {
     const alert = markFamilyContacted(makeAlert({ status: "resolved" }));
     expect(alert.status).toBe("resolved");
     expect(alert.familyContacted).toBe(true);
+  });
+});
+
+describe("referAlertToSocialWork", () => {
+  it("keeps the alert in progress instead of resolving it", () => {
+    const alert: BarrierAlert = {
+      id: "a-social",
+      patientId: "p-1",
+      milestoneId: "m-1",
+      category: "financial",
+      risk: "yellow",
+      status: "open",
+      familyContacted: false,
+      createdAt: NOW.toISOString(),
+    };
+    const referred = referAlertToSocialWork(alert, " Evaluar apoyo de traslado ");
+    expect(referred.status).toBe("in_progress");
+    expect(referred.actionTaken).toBe("social_work_referral");
+    expect(referred.internalNote).toBe("Evaluar apoyo de traslado");
+    expect(referred.resolvedAt).toBeUndefined();
   });
 });
 

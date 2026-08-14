@@ -169,8 +169,11 @@ describe("cobertura de endpoints", () => {
     }
   });
 
-  it("mantiene todo bajo /api/v1", () => {
+  it("mantiene todo bajo /api/v1, salvo los chequeos de infraestructura", () => {
+    // `/health` y `/health/db` viven fuera del contrato versionado a propósito:
+    // los consumen la plataforma de despliegue y el diagnóstico operativo, no la
+    // aplicación, así que no deben quedar atados a la versión de la API.
     const outside = Object.keys(schema.paths).filter((p) => !p.startsWith("/api/v1"));
-    expect(outside).toEqual(["/health"]);
+    expect(outside.sort()).toEqual(["/health", "/health/db"]);
   });
 });

@@ -110,6 +110,56 @@ async def mark_family_contacted(
     return alert
 
 
+async def refer_to_social_work(
+    session: AsyncSession,
+    *,
+    actor: User,
+    alert: BarrierAlert,
+    internal_note: str | None = None,
+    operation_id: UUID | None = None,
+) -> BarrierAlert:
+    """Deriva el caso sin cerrarlo: Servicio Social debe poder gestionarlo y devolverlo."""
+    if alert.status == "resolved":
+        raise invalid("alert_resolved", "La alerta ya fue resuelta")
+
+    existing = await session.scalar(
+        select(Intervention).where(
+            Intervention.alert_id == alert.id,
+            Intervention.action_type == "social_work_referral",
+        )
+    )
+    if existing is not None:
+        return alert
+
+    session.add(
+        Intervention(
+            alert_id=alert.id,
+            action_type="social_work_referral",
+            internal_note=internal_note or None,
+            performed_by=actor.id,
+            performed_at=utcnow(),
+            operation_id=operation_id,
+        )
+    )
+    alert.status = "in_progress"
+    alert.updated_at = utcnow()
+    await session.flush()
+
+    await audit.record_event(
+        session,
+        actor_id=actor.id,
+        action="refer_social_work",
+        entity_type="barrier_alert",
+        entity_id=alert.id,
+        metadata={
+            "patient_id": alert.patient_id,
+            "area": "social_work",
+            "action_taken": "social_work_referral",
+        },
+    )
+    return alert
+
+
 async def resolve(
     session: AsyncSession,
     *,
@@ -123,6 +173,11 @@ async def resolve(
     """Cierra el circuito: registra la intervención y devuelve la ruta a la familia."""
     if alert.status == "resolved":
         raise invalid("alert_resolved", "La alerta ya fue resuelta")
+    if action_taken == "social_work_referral":
+        raise invalid(
+            "referral_not_resolution",
+            "Derivar a Servicio Social mantiene la alerta en gestión",
+        )
     if action_taken == "reschedule" and new_scheduled_at is None:
         raise invalid("date_required", "Una reprogramación necesita una nueva fecha")
 

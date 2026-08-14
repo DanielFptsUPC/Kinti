@@ -32,6 +32,7 @@ OPERATION_ROLES: dict[str, str] = {
     "report_barrier": "caregiver",
     "record_feeling": "caregiver",
     "mark_family_contacted": "care_team",
+    "refer_social_work": "care_team",
     "resolve_alert": "care_team",
     "create_milestone": "care_team",
     "reschedule_milestone": "care_team",
@@ -91,6 +92,19 @@ async def _dispatch(
         await patients_service.require_patient_access(session, user, alert.patient_id)
         await alerts_service.mark_family_contacted(session, actor=user, alert=alert)
         return "family_contacted", alert.id
+
+    if kind == "refer_social_work":
+        body = schemas.ReferSocialWorkRequest.model_validate(payload)
+        alert = await alerts_service.get_alert(session, operation.target_id)
+        await patients_service.require_patient_access(session, user, alert.patient_id)
+        await alerts_service.refer_to_social_work(
+            session,
+            actor=user,
+            alert=alert,
+            internal_note=body.internal_note,
+            operation_id=operation.operation_id,
+        )
+        return "social_work_referred", alert.id
 
     if kind == "resolve_alert":
         body = schemas.ResolveAlertRequest.model_validate(payload)

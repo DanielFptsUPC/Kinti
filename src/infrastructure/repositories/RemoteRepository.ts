@@ -28,6 +28,7 @@ import type { SqlDatabase } from "@/infrastructure/database/schema";
 import {
   confirmMilestoneAttendance,
   markFamilyContacted,
+  referAlertToSocialWork,
   rescheduleMilestone,
   resolveBarrierAlert,
 } from "@/logic/alerts";
@@ -133,6 +134,17 @@ export class RemoteRepository implements KintiRepository {
     return this.commit({
       ...state,
       alerts: state.alerts.map((a) => (a.id === alertId ? markFamilyContacted(a) : a)),
+    });
+  }
+
+  async referAlertToSocialWork(alertId: string, internalNote?: string): Promise<KintiState> {
+    const state = await this.load();
+    await this.enqueue("refer_social_work", alertId, { internalNote });
+    return this.commit({
+      ...state,
+      alerts: state.alerts.map((alert) =>
+        alert.id === alertId ? referAlertToSocialWork(alert, internalNote) : alert,
+      ),
     });
   }
 

@@ -12,6 +12,7 @@ from app.api.deps import CareTeamUser, SessionDep
 from app.api.v1 import schemas
 from app.core.time import utcnow
 from app.modules.operations import service
+from app.modules.patients import service as patients_service
 
 router = APIRouter(prefix="/operations", tags=["operación asistencial"])
 
@@ -76,7 +77,8 @@ async def capacity(
 async def social_work(
     user: CareTeamUser, session: SessionDep
 ) -> schemas.SocialWorkQueueResponse:
-    rows = await service.social_work_queue(session)
+    patient_ids = await patients_service.authorized_patient_ids(session, user)
+    rows = await service.social_work_queue(session, patient_ids)
     return schemas.SocialWorkQueueResponse(
         rows=[
             schemas.SocialWorkQueueRow(
@@ -93,4 +95,3 @@ async def social_work(
         ],
         generated_at=utcnow(),
     )
-

@@ -33,6 +33,7 @@ export type OperationType =
   | "report_barrier"
   | "record_feeling"
   | "mark_family_contacted"
+  | "refer_social_work"
   | "resolve_alert"
   | "create_milestone"
   | "reschedule_milestone";
@@ -123,4 +124,67 @@ export interface ChatTurn {
   /** Un turno encolado sin conexión se muestra como pendiente, nunca respondido. */
   pending?: boolean;
   confirmed?: boolean;
+}
+
+// -------------------------------------------------- coordinación asistencial
+
+export interface OperationalWorkloadRow {
+  professionalId: string;
+  professionalName: string;
+  assignedPatients: number;
+  redPatients: number;
+  yellowPatients: number;
+  openAlerts: number;
+  missedMilestones: number;
+  weightedLoad: number;
+}
+
+export interface WorkloadResponse {
+  rows: OperationalWorkloadRow[];
+  maxDifference: number;
+  generatedAt: string;
+  disclaimer: string;
+}
+
+export type CapacityState = "underused" | "balanced" | "high" | "overbooked";
+
+export interface AmbulatoryCapacitySlot {
+  id: string;
+  service: string;
+  startsAt: string;
+  endsAt: string;
+  availablePlaces: number;
+  scheduledPatients: number;
+  occupancyPercent: number;
+  state: CapacityState;
+}
+
+export interface CapacityResponse {
+  slots: AmbulatoryCapacitySlot[];
+  generatedAt: string;
+  disclaimer: string;
+}
+
+export type SocialWorkStatus = "pending" | "contacted" | "referred" | "resolved";
+
+export interface SocialWorkQueueRow {
+  alertId: string;
+  patientId: string;
+  patientName: string;
+  category: import("@/types").BarrierCategory;
+  alertStatus: "open" | "in_progress" | "resolved";
+  coordinationStatus: SocialWorkStatus;
+  familyContacted: boolean;
+  createdAt: string;
+}
+
+export interface SocialWorkQueueResponse {
+  rows: SocialWorkQueueRow[];
+  generatedAt: string;
+}
+
+export interface OperationsDashboard {
+  workload: WorkloadResponse;
+  capacity: CapacityResponse;
+  socialWork: SocialWorkQueueResponse;
 }

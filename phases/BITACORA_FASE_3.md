@@ -563,6 +563,212 @@ staging**, conforme al runbook §4.
 
 ---
 
+## Paso 10 — API en Render y acceso de desarrollo desde Expo Go
+
+**Diagnosticado y documentado el 2026-08-14.** La API se desplegó como servicio
+Docker en Render y usa el proyecto Supabase de staging como persistencia. La
+arquitectura efectiva durante el desarrollo móvil queda así:
+
+```text
+Expo Go (teléfono)
+    │
+    │ descarga el bundle de desarrollo
+    ▼
+Metro (PC del desarrollador, expuesto por túnel)
+    │
+    │ HTTPS /api/v1
+    ▼
+Render — https://kinti-api-9x9t.onrender.com
+    │
+    │ PostgreSQL Session Pooler + TLS verificado
+    ▼
+Supabase staging
+```
+
+### Despliegue efectivo de la API
+
+- `render.yaml` declara un Web Service Docker en el plan gratuito, con
+  `backend` como contexto y `/health` como health check.
+- `backend/Dockerfile` inicia Uvicorn en `0.0.0.0:${PORT}`, como exige Render.
+- Render recibe las variables sensibles desde su panel; no se copiaron
+  contraseñas, JWT, claves de servicio ni URLs firmadas a esta bitácora.
+- La conexión de runtime usa el **Session Pooler IPv4** de Supabase y valida TLS
+  contra la CA incluida en la imagen.
+- Las migraciones y el seed se ejecutaron previamente contra Supabase. El plan
+  actual no los ejecuta automáticamente al iniciar el contenedor: una base nueva
+  debe prepararse de forma controlada antes de recibir tráfico.
+
+La configuración pública local usada para generar el bundle móvil es:
+
+```dotenv
+EXPO_PUBLIC_DATA_MODE=remote
+EXPO_PUBLIC_API_URL=https://kinti-api-9x9t.onrender.com
+```
+
+`EXPO_PUBLIC_API_URL` no contiene `/api/v1`, porque el cliente lo añade al formar
+cada solicitud. Estas variables son públicas por diseño y se incrustan en el
+bundle; **no deben contener secretos**. `.env.local` está ignorado por Git, por lo
+que cada equipo de desarrollo debe crearlo localmente.
+
+### Evidencia externa del despliegue
+
+Se comprobó el circuito real desde fuera del proceso local, sin imprimir ni
+persistir tokens:
+
+| Operación | Resultado |
+|---|---|
+| `GET /health` | HTTP 200, proceso Render activo |
+| `GET /health/db` | HTTP 200, PostgreSQL accesible mediante pooler y TLS |
+| `POST /api/v1/auth/login` | HTTP 200 con una cuenta sintética del seed |
+| `GET /api/v1/sync/bootstrap` | HTTP 200; usuario, pacientes, hitos, alertas, sentimientos y notificaciones |
+
+Después de despertar el servicio, `/health/db` respondió en aproximadamente
+0,28 s, el login en 1,57 s y el bootstrap en 0,25 s. El primer acceso llegó a
+tardar alrededor de 76 s, comportamiento compatible con el arranque en frío del
+servicio gratuito. Para una prueba manual puede despertarse primero con:
+
+```powershell
+Invoke-RestMethod https://kinti-api-9x9t.onrender.com/health
+```
+
+`/health` sólo comprueba el proceso web; `/health/db` es la verificación que
+distingue un Uvicorn activo de una conexión realmente funcional con Supabase.
+
+### Incidente: Expo Go no abría la aplicación
+
+El despliegue de Render estaba sano. En el equipo de desarrollo se verificó:
+
+1. Expo cargaba `.env.local` y exportaba la URL HTTPS correcta.
+2. Render, Supabase, el login y el bootstrap respondían correctamente.
+3. CORS no era el bloqueo: Expo Go ejecuta un cliente React Native nativo, no un
+   navegador.
+4. No existía ningún proceso escuchando en el puerto 8081: **Metro no estaba
+   ejecutándose**.
+
+La causa era confundir el despliegue de la API con el despliegue del cliente.
+Render hospeda FastAPI, pero Expo Go no contiene el código fuente del proyecto:
+durante el desarrollo necesita que **Metro** compile y le entregue el bundle,
+las imágenes y las actualizaciones. Al cerrar la terminal de Metro, el teléfono
+deja de poder obtener la aplicación.
+
+Aunque la API ya no depende de la IPv4 privada del PC, Metro sí necesita una ruta
+desde el teléfono al equipo. Para eliminar la dependencia de misma Wi‑Fi, IP LAN
+y reglas locales se añadió este script:
+
+```json
+"start:tunnel": "expo start --tunnel --clear"
+```
+
+Procedimiento reproducible desde la raíz del repositorio:
+
+```powershell
+npm.cmd run start:tunnel
+```
+
+Después se debe:
+
+1. mantener abierta la terminal de Metro;
+2. esperar a que el túnel y el QR estén listos;
+3. escanear el **QR nuevo** desde Expo Go; y
+4. realizar una recarga completa para descartar el bundle anterior, ya que las
+   variables `EXPO_PUBLIC_*` están embebidas en él.
+
+Con la API remota no se necesita iniciar `docker compose` ni Uvicorn local para
+usar la app. Metro continúa siendo necesario mientras se trabaje con Expo Go. En
+una APK o aplicación de producción el bundle ya va incluido, de modo que Metro y
+el PC dejan de ser necesarios; la aplicación instalada sólo conserva la
+dependencia de la API en Render.
+
+No se cambió la matriz de Expo durante este diagnóstico: el proyecto permanece
+en SDK 54. Actualizar paquetes no corrige una ausencia de Metro y mezclar SDKs
+introduciría un problema distinto. Si Expo Go muestra explícitamente un error de
+incompatibilidad de versión, deberá tratarse como una migración separada y
+coherente de toda la matriz Expo/React Native.
+
+### Estado del incidente
+
+| Capa | Estado |
+|---|---|
+| Render / FastAPI | ✅ verificada |
+| Supabase / TLS / pooler | ✅ verificada |
+| Login y bootstrap remotos | ✅ verificados |
+| URL pública incluida por Expo | ✅ verificada |
+| Comando Metro por túnel | ✅ añadido y configuración validada |
+| Circuito completo en el teléfono | ⚠️ pendiente confirmar el nuevo QR y login desde Expo Go |
+
+---
+
+## Despliegue en la nube
+
+**Ejecutado el 2026-08-14.** El backend corre en Render y habla con Supabase:
+
+```
+App móvil → https://kinti-api-9x9t.onrender.com → Supabase (us-west-2)
+```
+
+- `backend/Dockerfile`: multi-stage, usuario sin privilegios, `--proxy-headers`.
+- `render.yaml`: blueprint con secretos marcados `sync: false`.
+- Imagen verificada localmente antes de desplegar: arranca, responde y conecta
+  al pooler.
+
+### Dos hallazgos que sólo aparecen al desplegar
+
+**1. La conexión directa de Supabase es sólo IPv6.**
+
+```
+db.<ref>.supabase.co        IPv4: NO   IPv6: sí
+aws-0-<región>.pooler…      IPv4: sí   IPv6: NO
+```
+
+Render sólo hace egress IPv4, así que el despliegue **obliga** a usar el Session
+pooler. No es una preferencia: la conexión directa es inalcanzable desde ahí.
+
+**2. El pooler tampoco usa una CA pública.** Está firmado por la misma CA propia
+de Supabase. El `render.yaml` inicial dejaba `KINTI_DB_SSL_ROOT_CERT` vacío, y el
+resultado fue un patrón desconcertante: `/health` respondía 200 mientras todo
+endpoint que tocara la base devolvía 500.
+
+`supabase-ca.crt` se versiona en el repositorio: es un certificado **raíz
+público** que Supabase publica en su dashboard, no un secreto. El `Dockerfile` lo
+copia a la imagen.
+
+### `/health/db` — diagnóstico sin acceso a logs
+
+Un 500 opaco en un despliegue remoto es irresoluble sin leer los logs de la
+plataforma. Se añadió un endpoint que clasifica el fallo y devuelve una pista
+accionable, sin exponer contraseña, usuario ni la cadena completa.
+
+Encontró la causa raíz de inmediato:
+
+```json
+{ "host": "db.PROJECT_REF.supabase.co", "error": "gaierror" }
+```
+
+La variable en Render tenía el **marcador de ejemplo sin reemplazar**.
+
+### Circuitos verificados contra el despliegue
+
+Ambos, sobre Render + Supabase, por HTTPS público:
+
+```
+Continuidad (Fase 2)      13/13 OK
+RAG y asistente (Fase 3)  13/13 OK
+```
+
+Incluye lo esencial: la barrera offline llega una sola vez
+(`already_applied`), la familia no puede cerrar alertas (`forbidden`), las
+respuestas llevan cita o se abstienen, las consultas clínicas se transfieren sin
+interpretar, y una familia no ve la conversación de otra.
+
+### Defecto en el cliente móvil
+
+`.env.local` escrito con `Set-Content -Encoding utf8` de PowerShell 5.1 quedó con
+**BOM**. La primera variable se leía como `﻿EXPO_PUBLIC_DATA_MODE`, no
+coincidía con nada, y la aplicación caía a modo local — donde no hay pantalla de
+inicio de sesión. Reescrito sin BOM.
+
+---
+
 ## Estado final de la validación
 
 | Comando | Resultado |
@@ -576,6 +782,9 @@ staging**, conforme al runbook §4.
 | `npx expo export --platform android` | exportado |
 | `npx expo export --platform web` | exportado |
 | `alembic upgrade head` | `c442feb4e762` aplicada con `migration_url` |
+| Render: `/health` y `/health/db` | HTTP 200 |
+| Render: login y bootstrap | HTTP 200 con datos sintéticos |
+| `npm.cmd run start:tunnel` | script añadido; falta validación final desde el teléfono |
 
 **Total: 332 pruebas en verde** (212 backend + 120 móviles).
 
@@ -607,7 +816,7 @@ staging**, conforme al runbook §4.
 | Logs y auditoría sin contenido sensible | ✅ |
 | Backup y restauración probados | ✅ `pg_dump` + `pg_restore` verificados |
 | README, OpenAPI, ADR y bitácora | ✅ más `docs/RUNBOOK.md` |
-| Circuito desde dispositivo físico | ⚠️ verificado por HTTP contra Supabase; falta repetirlo desde Expo Go |
+| Circuito desde dispositivo físico | ⚠️ backend remoto verificado; Metro por túnel preparado; falta confirmar QR y login desde Expo Go |
 
 **21 de 23 cumplidos.**
 
@@ -616,7 +825,7 @@ Los **2 restantes**:
 | Criterio | Qué falta |
 |---|---|
 | Integración real con modelo multimodal | credenciales GCP con Vertex AI habilitado |
-| Circuito desde dispositivo físico | repetir el guion desde Expo Go apuntando al backend con Supabase |
+| Circuito desde dispositivo físico | ejecutar `npm.cmd run start:tunnel`, escanear el QR nuevo y repetir el login desde Expo Go |
 
 El adaptador Vertex está escrito, tipado y compuesto tras su puerto; activarlo es
 cambiar `KINTI_AI_PROVIDER=vertex` y rellenar modelo y región.

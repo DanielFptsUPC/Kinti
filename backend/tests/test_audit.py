@@ -68,9 +68,9 @@ async def test_audit_never_stores_free_text_notes(
     )
     internal_note = "Coordinado con trabajo social, expediente ficticio 123"
     await client.post(
-        f"/api/v1/alerts/{created.json()['id']}/resolve",
+        f"/api/v1/alerts/{created.json()['id']}/refer-social-work",
         headers=auth(care_team_token),
-        json={"actionTaken": "social_work_referral", "internalNote": internal_note},
+        json={"internalNote": internal_note},
     )
 
     events = list(await session.scalars(select(AuditEvent)))

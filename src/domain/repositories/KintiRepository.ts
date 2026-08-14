@@ -75,6 +75,7 @@ export interface KintiRepository {
 
   // --- comandos del equipo asistencial
   markFamilyContacted(alertId: string): Promise<KintiState>;
+  referAlertToSocialWork(alertId: string, internalNote?: string): Promise<KintiState>;
   resolveAlert(alertId: string, input: ResolveAlertInput): Promise<KintiState>;
   createMilestone(input: CreateMilestoneInput): Promise<KintiState>;
   rescheduleMilestone(milestoneId: string, newScheduledAt: string): Promise<KintiState>;
