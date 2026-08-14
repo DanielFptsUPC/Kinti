@@ -2,10 +2,11 @@
 
 Registro de lo realmente implementado y validado. Fecha: **2026-08-14**.
 
-> **Estado:** núcleo operativo y capa de protección infantil implementados y
-> validados localmente. Queda pendiente lo que no depende del código: la
-> aprobación de contenido por Psicología, la validación institucional y el
-> redespliegue en Render, que aún sirve la API previa a estos cambios.
+> **Estado:** núcleo operativo y capa de protección infantil implementados,
+> validados y **desplegados**. `kinti-api-9x9t.onrender.com` sirve las 45 rutas
+> de la Fase 4 y el circuito infantil está verificado contra Supabase. Lo único
+> pendiente ya no depende del código: la aprobación de contenido por Psicología
+> y la validación institucional.
 
 ---
 
@@ -376,6 +377,54 @@ un vínculo cuidador–paciente que el seed todavía no ha registrado en ese pun
 
 ---
 
+## Paso 10 — Despliegue
+
+### Por qué la API se había quedado atrás
+
+El contenedor no aplicaba migraciones: su `CMD` arrancaba `uvicorn` directamente
+y el `alembic upgrade head` era un paso manual. Eso ya había fallado — el código
+desplegado podía adelantarse al esquema y cualquier ruta nueva respondía 500 o
+404 sin señal de la causa.
+
+Se añadió `backend/docker-entrypoint.sh`, que migra y después sirve. Que un
+fallo de migración impida arrancar es intencionado: Render mantiene viva la
+versión anterior si la nueva no supera el health check, así que romper el
+arranque es más seguro que servir con el esquema equivocado.
+
+También se añadió `.gitattributes` con `*.sh text eol=lf`. Sin él, Git en
+Windows entregaría el script con CRLF y el contenedor fallaría con «no such file
+or directory» — un mensaje que no menciona el problema real.
+
+### Verificación contra el despliegue real
+
+| Comprobación | Resultado |
+|---|---|
+| `/health/db` | `ok`, vía Session Pooler (IPv4) |
+| Rutas publicadas | 45, con las 8 de Compañero |
+| Migración aplicada por el arranque | `c442feb4e762` → `8a5c70ba54d1` |
+| Alta de la cuenta infantil por el cuidador | 200 |
+| Login del menor y vista Compañero | 200, sin dato operativo |
+| `/sync/bootstrap` con token infantil | **403** |
+| `/notifications` con token infantil | **403** |
+| `/patients/{id}/route` con token infantil | **403** |
+| `/auth/login` con la cuenta del menor | **401** |
+| Petición de apoyo → bandeja del cuidador | 200, llega íntegra |
+
+La frontera se comprobó sobre el despliegue, no sólo en la suite local.
+
+### Cuenta de demostración en Supabase
+
+Se creó por la vía del producto (`POST /caregiver/patients/{id}/patient-account`
+como cuidador), no escribiendo en la base: así el alta que usa la demostración
+es exactamente la que usará un apoderado.
+
+- alias `mateo-colibri`, PIN `2468`.
+
+Queda en la bandeja del cuidador una petición de apoyo «Tengo miedo» generada
+al verificar el circuito.
+
+---
+
 ## Archivos principales
 
 ### Backend
@@ -472,7 +521,7 @@ Kinti Compañero:
 | Control cuidador y contenido por etapa | ✅ |
 | Pruebas de frontera infantil | ✅ |
 | Contenido validado por Psicología/experiencia del paciente | ⏳ pendiente institucional |
-| API Fase 4 redesplegada en Render | ⏳ no ejecutado en esta sesión |
+| API Fase 4 redesplegada en Render | ✅ 45 rutas, circuito infantil verificado |
 | Validación con actores del INSNSB | ⏳ requiere coordinación institucional |
 | Datos reales o integración de agenda | ⛔ fuera del prototipo sin autorización |
 
@@ -483,8 +532,8 @@ Lo que queda ya no es código. En orden:
 1. **Psicología / experiencia del paciente** debe revisar el contenido y el
    lenguaje del catálogo (`ACTIVITIES`, `GREETINGS` y las guías de
    `app/child/activity/[key].tsx`). La estructura está; la aprobación no.
-2. **Redesplegar en Render.** La API en la nube todavía sirve la versión previa
-   a estas 8 rutas nuevas, así que un dispositivo apuntando a producción no
-   encontrará el espacio Compañero.
-3. **Prueba guiada** con Hematología, Enfermería, Servicio Social, Clínica de
+2. **Prueba guiada** con Hematología, Enfermería, Servicio Social, Clínica de
    Día y familias, sobre datos ficticios.
+
+El despliegue ya no es un paso pendiente ni manual: cada `push` a `main`
+reconstruye la imagen y el arranque aplica su propia migración.
