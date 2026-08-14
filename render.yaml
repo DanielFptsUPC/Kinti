@@ -1,0 +1,82 @@
+# Despliegue del backend de Kinti en Render.
+#
+# Los secretos NO van aquí: se marcan `sync: false` y se rellenan una sola vez
+# en el panel de Render. Este archivo sí se versiona.
+#
+# IMPORTANTE — conexión a Supabase:
+# Render sólo hace egress IPv4, y la conexión directa de Supabase
+# (`db.<ref>.supabase.co`) resuelve únicamente a IPv6. Hay que usar el
+# **Session Pooler** (`aws-0-<región>.pooler.supabase.com`), que sí tiene IPv4.
+#
+# Transaction mode NO sirve: rompe los prepared statements de asyncpg y los
+# locks de DDL de Alembic.
+
+services:
+  - type: web
+    name: kinti-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+
+    envVars:
+      # --- Base de datos (Session Pooler, IPv4) -------------------------------
+      - key: KINTI_DATABASE_URL
+        sync: false
+      - key: KINTI_MIGRATION_DATABASE_URL
+        sync: false
+
+      # El pooler usa un certificado de CA pública: no hace falta CA propia.
+      - key: KINTI_REQUIRE_TLS
+        value: "true"
+      - key: KINTI_DB_SSL_ROOT_CERT
+        value: ""
+
+      # El plan gratuito de Supabase limita conexiones; el pooler las multiplexa,
+      # pero conviene no abrir más de las necesarias.
+      - key: KINTI_DB_POOL_SIZE
+        value: "3"
+      - key: KINTI_DB_MAX_OVERFLOW
+        value: "2"
+
+      # --- Sesión -------------------------------------------------------------
+      - key: KINTI_JWT_SECRET
+        generateValue: true
+      - key: KINTI_ACCESS_TOKEN_MINUTES
+        value: "30"
+      - key: KINTI_REFRESH_TOKEN_DAYS
+        value: "14"
+
+      # --- Supabase Storage ---------------------------------------------------
+      - key: KINTI_STORAGE_PROVIDER
+        value: supabase
+      - key: KINTI_SUPABASE_URL
+        sync: false
+      - key: KINTI_SUPABASE_SERVICE_KEY
+        sync: false
+
+      # --- IA -----------------------------------------------------------------
+      # `fake` por defecto: activar un proveedor real es una decisión consciente,
+      # no algo que ocurra por omisión al desplegar.
+      - key: KINTI_AI_PROVIDER
+        value: fake
+      - key: KINTI_EMBEDDING_PROVIDER
+        value: fake
+      - key: KINTI_EMBEDDING_DIMENSION
+        value: "768"
+      - key: KINTI_RAG_TOP_K
+        value: "5"
+
+      # --- Dominio ------------------------------------------------------------
+      - key: KINTI_ENVIRONMENT
+        value: staging
+      - key: KINTI_BARRIER_RESPONSE_WINDOW_HOURS
+        value: "48"
+      - key: KINTI_MISSED_TOLERANCE_HOURS
+        value: "6"
+
+      # Orígenes web permitidos. La app nativa no usa CORS.
+      - key: KINTI_CORS_ORIGINS
+        value: "http://localhost:8081,http://localhost:19006"

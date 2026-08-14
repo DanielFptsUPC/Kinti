@@ -39,3 +39,16 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# backend (Python)
+backend/.venv/
+backend/.env
+# Certificados y credenciales de servicios externos
+backend/*.crt
+backend/*.json
+!backend/tests/**/*.json
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/

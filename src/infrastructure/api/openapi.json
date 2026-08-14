@@ -1,0 +1,3647 @@
+{
+  "components": {
+    "schemas": {
+      "AlertDetail": {
+        "properties": {
+          "alert": {
+            "$ref": "#/components/schemas/AlertOut"
+          },
+          "milestone": {
+            "$ref": "#/components/schemas/MilestoneOut"
+          },
+          "patient": {
+            "$ref": "#/components/schemas/PatientOut"
+          }
+        },
+        "required": [
+          "alert",
+          "milestone",
+          "patient"
+        ],
+        "title": "AlertDetail",
+        "type": "object"
+      },
+      "AlertOut": {
+        "properties": {
+          "actionTaken": {
+            "anyOf": [
+              {
+                "enum": [
+                  "guidance",
+                  "reschedule",
+                  "social_work_referral",
+                  "lodging_coordination",
+                  "transport_coordination",
+                  "other"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actiontaken"
+          },
+          "category": {
+            "enum": [
+              "transport",
+              "lodging",
+              "financial",
+              "schedule",
+              "instructions",
+              "communication",
+              "health_difficulty",
+              "other"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "familyContacted": {
+            "title": "Familycontacted",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "internalNote": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Internalnote"
+          },
+          "milestoneId": {
+            "format": "uuid",
+            "title": "Milestoneid",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "patientId": {
+            "format": "uuid",
+            "title": "Patientid",
+            "type": "string"
+          },
+          "resolvedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolvedat"
+          },
+          "risk": {
+            "enum": [
+              "green",
+              "yellow",
+              "red"
+            ],
+            "title": "Risk",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "in_progress",
+              "resolved"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "patientId",
+          "milestoneId",
+          "category",
+          "status",
+          "risk",
+          "familyContacted",
+          "createdAt"
+        ],
+        "title": "AlertOut",
+        "type": "object"
+      },
+      "AssistantMessageOut": {
+        "properties": {
+          "answer": {
+            "title": "Answer",
+            "type": "string"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/CitationOut"
+            },
+            "title": "Citations",
+            "type": "array"
+          },
+          "confidence": {
+            "enum": [
+              "supported",
+              "insufficient_evidence",
+              "refused"
+            ],
+            "title": "Confidence",
+            "type": "string"
+          },
+          "intent": {
+            "enum": [
+              "institutional_faq",
+              "next_milestone_query",
+              "attendance_confirmation",
+              "report_barrier",
+              "request_callback",
+              "administrative_document_question",
+              "clinical_or_safety_concern",
+              "unknown"
+            ],
+            "title": "Intent",
+            "type": "string"
+          },
+          "messageId": {
+            "format": "uuid",
+            "title": "Messageid",
+            "type": "string"
+          },
+          "needsHuman": {
+            "title": "Needshuman",
+            "type": "boolean"
+          },
+          "proposedAction": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProposedActionOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "messageId",
+          "intent",
+          "answer",
+          "confidence",
+          "needsHuman"
+        ],
+        "title": "AssistantMessageOut",
+        "type": "object"
+      },
+      "BootstrapResponse": {
+        "description": "Instant�nea can�nica: todo lo que el cliente necesita para su cach�.",
+        "properties": {
+          "alerts": {
+            "items": {
+              "$ref": "#/components/schemas/AlertOut"
+            },
+            "title": "Alerts",
+            "type": "array"
+          },
+          "feelings": {
+            "items": {
+              "$ref": "#/components/schemas/FeelingOut"
+            },
+            "title": "Feelings",
+            "type": "array"
+          },
+          "milestones": {
+            "items": {
+              "$ref": "#/components/schemas/MilestoneOut"
+            },
+            "title": "Milestones",
+            "type": "array"
+          },
+          "notifications": {
+            "items": {
+              "$ref": "#/components/schemas/NotificationOut"
+            },
+            "title": "Notifications",
+            "type": "array"
+          },
+          "patients": {
+            "items": {
+              "$ref": "#/components/schemas/PatientOut"
+            },
+            "title": "Patients",
+            "type": "array"
+          },
+          "serverTime": {
+            "format": "date-time",
+            "title": "Servertime",
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserProfile"
+          }
+        },
+        "required": [
+          "user",
+          "patients",
+          "milestones",
+          "alerts",
+          "feelings",
+          "notifications",
+          "serverTime"
+        ],
+        "title": "BootstrapResponse",
+        "type": "object"
+      },
+      "CapacityResponse": {
+        "properties": {
+          "disclaimer": {
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "generatedAt": {
+            "format": "date-time",
+            "title": "Generatedat",
+            "type": "string"
+          },
+          "slots": {
+            "items": {
+              "$ref": "#/components/schemas/CapacitySlotOut"
+            },
+            "title": "Slots",
+            "type": "array"
+          }
+        },
+        "required": [
+          "slots",
+          "generatedAt",
+          "disclaimer"
+        ],
+        "title": "CapacityResponse",
+        "type": "object"
+      },
+      "CapacitySlotOut": {
+        "properties": {
+          "availablePlaces": {
+            "title": "Availableplaces",
+            "type": "integer"
+          },
+          "endsAt": {
+            "format": "date-time",
+            "title": "Endsat",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "occupancyPercent": {
+            "title": "Occupancypercent",
+            "type": "integer"
+          },
+          "scheduledPatients": {
+            "title": "Scheduledpatients",
+            "type": "integer"
+          },
+          "service": {
+            "title": "Service",
+            "type": "string"
+          },
+          "startsAt": {
+            "format": "date-time",
+            "title": "Startsat",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "underused",
+              "balanced",
+              "high",
+              "overbooked"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "service",
+          "startsAt",
+          "endsAt",
+          "availablePlaces",
+          "scheduledPatients",
+          "occupancyPercent",
+          "state"
+        ],
+        "title": "CapacitySlotOut",
+        "type": "object"
+      },
+      "CareTeamPatientRow": {
+        "properties": {
+          "hasMissed": {
+            "title": "Hasmissed",
+            "type": "boolean"
+          },
+          "hasOpenBarrier": {
+            "title": "Hasopenbarrier",
+            "type": "boolean"
+          },
+          "nextMilestone": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MilestoneOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "patient": {
+            "$ref": "#/components/schemas/PatientOut"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "patient",
+          "hasOpenBarrier",
+          "hasMissed",
+          "reason"
+        ],
+        "title": "CareTeamPatientRow",
+        "type": "object"
+      },
+      "CitationOut": {
+        "description": "Cita comprensible: t�tulo, versi�n y secci�n. Sin URLs permanentes.",
+        "properties": {
+          "chunkId": {
+            "format": "uuid",
+            "title": "Chunkid",
+            "type": "string"
+          },
+          "documentTitle": {
+            "title": "Documenttitle",
+            "type": "string"
+          },
+          "documentVersion": {
+            "title": "Documentversion",
+            "type": "string"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "section": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section"
+          }
+        },
+        "required": [
+          "chunkId",
+          "documentTitle",
+          "documentVersion"
+        ],
+        "title": "CitationOut",
+        "type": "object"
+      },
+      "ConfirmActionRequest": {
+        "properties": {
+          "operationId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operationid"
+          }
+        },
+        "title": "ConfirmActionRequest",
+        "type": "object"
+      },
+      "ConfirmAttendanceRequest": {
+        "properties": {
+          "operationId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operationid"
+          }
+        },
+        "title": "ConfirmAttendanceRequest",
+        "type": "object"
+      },
+      "ContactFamilyRequest": {
+        "properties": {
+          "operationId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operationid"
+          }
+        },
+        "title": "ContactFamilyRequest",
+        "type": "object"
+      },
+      "CreateDocumentRequest": {
+        "properties": {
+          "audience": {
+            "default": "caregiver",
+            "enum": [
+              "caregiver",
+              "care_team",
+              "child",
+              "public"
+            ],
+            "title": "Audience",
+            "type": "string"
+          },
+          "category": {
+            "maxLength": 200,
+            "title": "Category",
+            "type": "string"
+          },
+          "language": {
+            "default": "es",
+            "maxLength": 8,
+            "title": "Language",
+            "type": "string"
+          },
+          "slug": {
+            "maxLength": 120,
+            "title": "Slug",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug",
+          "title",
+          "category"
+        ],
+        "title": "CreateDocumentRequest",
+        "type": "object"
+      },
+      "CreateMilestoneRequest": {
+        "properties": {
+          "confirmationDeadline": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmationdeadline"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "operationId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operationid"
+          },
+          "preparation": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preparation"
+          },
+          "scheduledAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduledat"
+          },
+          "service": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "consultation",
+              "laboratory",
+              "procedure",
+              "treatment",
+              "follow_up"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "title"
+        ],
+        "title": "CreateMilestoneRequest",
+        "type": "object"
+      },
+      "CreateVersionRequest": {
+        "properties": {
+          "content": {
+            "maxLength": 200000,
+            "title": "Content",
+            "type": "string"
+          },
+          "mimeType": {
+            "default": "text/markdown",
+            "maxLength": 120,
+            "title": "Mimetype",
+            "type": "string"
+          },
+          "version": {
+            "maxLength": 32,
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "content"
+        ],
+        "title": "CreateVersionRequest",
+        "type": "object"
+      },
+      "DocumentOut": {
+        "properties": {
+          "audience": {
+            "title": "Audience",
+            "type": "string"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "isActive": {
+            "title": "Isactive",
+            "type": "boolean"
+          },
+          "language": {
+            "title": "Language",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "category",
+          "audience",
+          "language",
+          "isActive"
+        ],
+        "title": "DocumentOut",
+        "type": "object"
+      },
+      "FeelingOut": {
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "mood": {
+            "enum": [
+              "calm",
+              "unsure",
+              "worried",
+              "tired"
+            ],
+            "title": "Mood",
+            "type": "string"
+          },
+          "patientId": {
+            "format": "uuid",
+            "title": "Patientid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "patientId",
+          "mood",
+          "createdAt"
+        ],
+        "title": "FeelingOut",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "LoginRequest": {
+        "properties": {
+          "email": {
+            "maxLength": 255,
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginRequest",
+        "type": "object"
+      },
+      "MeResponse": {
+        "properties": {
+          "patientIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Patientids",
+            "type": "array"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserProfile"
+          }
+        },
+        "required": [
+          "user",
+          "patientIds"
+        ],
+        "title": "MeResponse",
+        "type": "object"
+      },
+      "MediaUploadIntentRequest": {
+        "properties": {
+          "durationSeconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Durationseconds"
+          },
+          "mimeType": {
+            "maxLength": 120,
+            "title": "Mimetype",
+            "type": "string"
+          },
+          "modality": {
+            "enum": [
+              "audio",
+              "image"
+            ],
+            "title": "Modality",
+            "type": "string"
+          },
+          "sizeBytes": {
+            "title": "Sizebytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "modality",
+          "mimeType",
+          "sizeBytes"
+        ],
+        "title": "MediaUploadIntentRequest",
+        "type": "object"
+      },
+      "MediaUploadIntentResponse": {
+        "properties": {
+          "expiresInSeconds": {
+            "title": "Expiresinseconds",
+            "type": "integer"
+          },
+          "mediaId": {
+            "format": "uuid",
+            "title": "Mediaid",
+            "type": "string"
+          },
+          "uploadUrl": {
+            "title": "Uploadurl",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mediaId",
+          "uploadUrl",
+          "expiresInSeconds"
+        ],
+        "title": "MediaUploadIntentResponse",
+        "type": "object"
+      },
+      "MilestoneOut": {
+        "properties": {
+          "attendanceConfirmed": {
+            "title": "Attendanceconfirmed",
+            "type": "boolean"
+          },
+          "confirmationDeadline": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmationdeadline"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "patientId": {
+            "format": "uuid",
+            "title": "Patientid",
+            "type": "string"
+          },
+          "preparation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preparation"
+          },
+          "scheduledAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduledat"
+          },
+          "service": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service"
+          },
+          "status": {
+            "enum": [
+              "completed",
+              "upcoming",
+              "unscheduled",
+              "support_needed",
+              "rescheduled",
+              "missed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "consultation",
+              "laboratory",
+              "procedure",
+              "treatment",
+              "follow_up"
+            ],
+            "title": "Type",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "patientId",
+          "type",
+          "title",
+          "status",
+          "attendanceConfirmed",
+          "version"
+        ],
+        "title": "MilestoneOut",
+        "type": "object"
+      },
+      "NotificationOut": {
+        "properties": {
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "patientId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patientid"
+          },
+          "readAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Readat"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "title",
+          "body",
+          "createdAt"
+        ],
+        "title": "NotificationOut",
+        "type": "object"
+      },
+      "OverviewResponse": {
+        "properties": {
+          "counts": {
+            "$ref": "#/components/schemas/RiskCounts"
+          },
+          "generatedAt": {
+            "format": "date-time",
+            "title": "Generatedat",
+            "type": "string"
+          },
+          "openAlerts": {
+            "title": "Openalerts",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "counts",
+          "openAlerts",
+          "generatedAt"
+        ],
+        "title": "OverviewResponse",
+        "type": "object"
+      },
+      "PatientOut": {
+        "properties": {
+          "age": {
+            "title": "Age",
+            "type": "integer"
+          },
+          "avatarKey": {
+            "title": "Avatarkey",
+            "type": "string"
+          },
+          "caregiverName": {
+            "title": "Caregivername",
+            "type": "string"
+          },
+          "contactPhone": {
+            "title": "Contactphone",
+            "type": "string"
+          },
+          "displayName": {
+            "title": "Displayname",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "operationalRisk": {
+            "enum": [
+              "green",
+              "yellow",
+              "red"
+            ],
+            "title": "Operationalrisk",
+            "type": "string"
+          },
+          "routeStatus": {
+            "enum": [
+              "on_track",
+              "confirmation_needed",
+              "support_needed"
+            ],
+            "title": "Routestatus",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "displayName",
+          "age",
+          "avatarKey",
+          "caregiverName",
+          "contactPhone",
+          "operationalRisk",
+          "routeStatus"
+        ],
+        "title": "PatientOut",
+        "type": "object"
+      },
+      "ProposedActionOut": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "report_barrier",
+              "confirm_attendance",
+              "request_callback"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "summary"
+        ],
+        "title": "ProposedActionOut",
+        "type": "object"
+      },
+      "RecordFeelingRequest": {
+        "properties": {
+          "mood": {
+            "enum": [
+              "calm",
+              "unsure",
+              "worried",
+              "tired"
+            ],
+            "title": "Mood",
+            "type": "string"
+          },
+          "operationId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operationid"
+          }
+        },
+        "required": [
+          "mood"
+        ],
+        "title": "RecordFeelingRequest",
+        "type": "object"
+      },
+      "RefreshRequest": {
+        "properties": {
+          "refreshToken": {
+            "title": "Refreshtoken",
+            "type": "string"
+          }
+        },
+        "required": [
+          "refreshToken"
+        ],
+        "title": "RefreshRequest",
+        "type": "object"
+      },
+      "ReportBarrierRequest": {
+        "properties": {
+          "category": {
+            "enum": [
+              "transport",
+              "lodging",
+              "financial",
+              "schedule",
+              "instructions",
+              "communication",
+              "health_difficulty",
+              "other"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "operationId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operationid"
+          }
+        },
+        "required": [
+          "category"
+        ],
+        "title": "ReportBarrierRequest",
+        "type": "object"
+      },
+      "RescheduleMilestoneRequest": {
+        "properties": {
+          "newScheduledAt": {
+            "format": "date-time",
+            "title": "Newscheduledat",
+            "type": "string"
+          },
+          "operationId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operationid"
+          }
+        },
+        "required": [
+          "newScheduledAt"
+        ],
+        "title": "RescheduleMilestoneRequest",
+        "type": "object"
+      },
+      "ResolveAlertRequest": {
+        "properties": {
+          "actionTaken": {
+            "enum": [
+              "guidance",
+              "reschedule",
+              "social_work_referral",
+              "lodging_coordination",
+              "transport_coordination",
+              "other"
+            ],
+            "title": "Actiontaken",
+            "type": "string"
+          },
+          "internalNote": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Internalnote"
+          },
+          "newScheduledAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Newscheduledat"
+          },
+          "operationId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operationid"
+          }
+        },
+        "required": [
+          "actionTaken"
+        ],
+        "title": "ResolveAlertRequest",
+        "type": "object"
+      },
+      "RiskCounts": {
+        "properties": {
+          "green": {
+            "title": "Green",
+            "type": "integer"
+          },
+          "red": {
+            "title": "Red",
+            "type": "integer"
+          },
+          "yellow": {
+            "title": "Yellow",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "green",
+          "yellow",
+          "red"
+        ],
+        "title": "RiskCounts",
+        "type": "object"
+      },
+      "RouteResponse": {
+        "properties": {
+          "alerts": {
+            "items": {
+              "$ref": "#/components/schemas/AlertOut"
+            },
+            "title": "Alerts",
+            "type": "array"
+          },
+          "milestones": {
+            "items": {
+              "$ref": "#/components/schemas/MilestoneOut"
+            },
+            "title": "Milestones",
+            "type": "array"
+          },
+          "nextMilestoneId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextmilestoneid"
+          },
+          "patient": {
+            "$ref": "#/components/schemas/PatientOut"
+          }
+        },
+        "required": [
+          "patient",
+          "milestones",
+          "alerts"
+        ],
+        "title": "RouteResponse",
+        "type": "object"
+      },
+      "SendMessageRequest": {
+        "properties": {
+          "mediaId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mediaid"
+          },
+          "modality": {
+            "default": "text",
+            "enum": [
+              "text",
+              "audio",
+              "image"
+            ],
+            "title": "Modality",
+            "type": "string"
+          },
+          "operationId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operationid"
+          },
+          "text": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "title": "SendMessageRequest",
+        "type": "object"
+      },
+      "SessionOut": {
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "patientId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patientid"
+          },
+          "policyVersion": {
+            "title": "Policyversion",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "policyVersion",
+          "createdAt"
+        ],
+        "title": "SessionOut",
+        "type": "object"
+      },
+      "SocialWorkQueueResponse": {
+        "properties": {
+          "generatedAt": {
+            "format": "date-time",
+            "title": "Generatedat",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/SocialWorkQueueRow"
+            },
+            "title": "Rows",
+            "type": "array"
+          }
+        },
+        "required": [
+          "rows",
+          "generatedAt"
+        ],
+        "title": "SocialWorkQueueResponse",
+        "type": "object"
+      },
+      "SocialWorkQueueRow": {
+        "properties": {
+          "alertId": {
+            "format": "uuid",
+            "title": "Alertid",
+            "type": "string"
+          },
+          "alertStatus": {
+            "enum": [
+              "open",
+              "in_progress",
+              "resolved"
+            ],
+            "title": "Alertstatus",
+            "type": "string"
+          },
+          "category": {
+            "enum": [
+              "transport",
+              "lodging",
+              "financial",
+              "schedule",
+              "instructions",
+              "communication",
+              "health_difficulty",
+              "other"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "coordinationStatus": {
+            "enum": [
+              "pending",
+              "contacted",
+              "referred",
+              "resolved"
+            ],
+            "title": "Coordinationstatus",
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "familyContacted": {
+            "title": "Familycontacted",
+            "type": "boolean"
+          },
+          "patientId": {
+            "format": "uuid",
+            "title": "Patientid",
+            "type": "string"
+          },
+          "patientName": {
+            "title": "Patientname",
+            "type": "string"
+          }
+        },
+        "required": [
+          "alertId",
+          "patientId",
+          "patientName",
+          "category",
+          "alertStatus",
+          "coordinationStatus",
+          "familyContacted",
+          "createdAt"
+        ],
+        "title": "SocialWorkQueueRow",
+        "type": "object"
+      },
+      "StartSessionRequest": {
+        "properties": {
+          "patientId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patientid"
+          }
+        },
+        "title": "StartSessionRequest",
+        "type": "object"
+      },
+      "SyncOperation": {
+        "properties": {
+          "operationId": {
+            "format": "uuid",
+            "title": "Operationid",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "targetId": {
+            "format": "uuid",
+            "title": "Targetid",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "confirm_attendance",
+              "report_barrier",
+              "record_feeling",
+              "mark_family_contacted",
+              "resolve_alert",
+              "create_milestone",
+              "reschedule_milestone"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operationId",
+          "type",
+          "targetId"
+        ],
+        "title": "SyncOperation",
+        "type": "object"
+      },
+      "SyncOperationResult": {
+        "properties": {
+          "errorCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Errorcode"
+          },
+          "operationId": {
+            "format": "uuid",
+            "title": "Operationid",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "applied",
+              "already_applied",
+              "rejected"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operationId",
+          "status"
+        ],
+        "title": "SyncOperationResult",
+        "type": "object"
+      },
+      "SyncOperationsRequest": {
+        "properties": {
+          "operations": {
+            "items": {
+              "$ref": "#/components/schemas/SyncOperation"
+            },
+            "title": "Operations",
+            "type": "array"
+          }
+        },
+        "required": [
+          "operations"
+        ],
+        "title": "SyncOperationsRequest",
+        "type": "object"
+      },
+      "SyncOperationsResponse": {
+        "properties": {
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/SyncOperationResult"
+            },
+            "title": "Results",
+            "type": "array"
+          }
+        },
+        "required": [
+          "results"
+        ],
+        "title": "SyncOperationsResponse",
+        "type": "object"
+      },
+      "TokenPair": {
+        "properties": {
+          "accessToken": {
+            "title": "Accesstoken",
+            "type": "string"
+          },
+          "expiresIn": {
+            "title": "Expiresin",
+            "type": "integer"
+          },
+          "refreshToken": {
+            "title": "Refreshtoken",
+            "type": "string"
+          },
+          "tokenType": {
+            "default": "bearer",
+            "title": "Tokentype",
+            "type": "string"
+          }
+        },
+        "required": [
+          "accessToken",
+          "refreshToken",
+          "expiresIn"
+        ],
+        "title": "TokenPair",
+        "type": "object"
+      },
+      "UserProfile": {
+        "properties": {
+          "displayName": {
+            "title": "Displayname",
+            "type": "string"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "caregiver",
+              "care_team"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "displayName",
+          "role"
+        ],
+        "title": "UserProfile",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "VersionOut": {
+        "properties": {
+          "checksum": {
+            "title": "Checksum",
+            "type": "string"
+          },
+          "documentId": {
+            "format": "uuid",
+            "title": "Documentid",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "publishedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publishedat"
+          },
+          "retiredAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retiredat"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "documentId",
+          "version",
+          "status",
+          "checksum"
+        ],
+        "title": "VersionOut",
+        "type": "object"
+      },
+      "VersionPreviewOut": {
+        "properties": {
+          "chunkCount": {
+            "title": "Chunkcount",
+            "type": "integer"
+          },
+          "sections": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sections",
+            "type": "array"
+          },
+          "version": {
+            "$ref": "#/components/schemas/VersionOut"
+          }
+        },
+        "required": [
+          "version",
+          "chunkCount"
+        ],
+        "title": "VersionPreviewOut",
+        "type": "object"
+      },
+      "WorkloadResponse": {
+        "properties": {
+          "disclaimer": {
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "generatedAt": {
+            "format": "date-time",
+            "title": "Generatedat",
+            "type": "string"
+          },
+          "maxDifference": {
+            "title": "Maxdifference",
+            "type": "integer"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/WorkloadRow"
+            },
+            "title": "Rows",
+            "type": "array"
+          }
+        },
+        "required": [
+          "rows",
+          "maxDifference",
+          "generatedAt",
+          "disclaimer"
+        ],
+        "title": "WorkloadResponse",
+        "type": "object"
+      },
+      "WorkloadRow": {
+        "properties": {
+          "assignedPatients": {
+            "title": "Assignedpatients",
+            "type": "integer"
+          },
+          "missedMilestones": {
+            "title": "Missedmilestones",
+            "type": "integer"
+          },
+          "openAlerts": {
+            "title": "Openalerts",
+            "type": "integer"
+          },
+          "professionalId": {
+            "format": "uuid",
+            "title": "Professionalid",
+            "type": "string"
+          },
+          "professionalName": {
+            "title": "Professionalname",
+            "type": "string"
+          },
+          "redPatients": {
+            "title": "Redpatients",
+            "type": "integer"
+          },
+          "weightedLoad": {
+            "title": "Weightedload",
+            "type": "integer"
+          },
+          "yellowPatients": {
+            "title": "Yellowpatients",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "professionalId",
+          "professionalName",
+          "assignedPatients",
+          "redPatients",
+          "yellowPatients",
+          "openAlerts",
+          "missedMilestones",
+          "weightedLoad"
+        ],
+        "title": "WorkloadRow",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "description": "API del piloto conectado de Kinti (Fase 2). Datos exclusivamente sint�ticos. El sem�foro representa riesgo operativo de interrupci�n de la ruta, no gravedad cl�nica. No diagnostica, no prescribe y no realiza triaje.",
+    "title": "Kinti API",
+    "version": "2.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/alerts/{alert_id}": {
+      "get": {
+        "operationId": "get_alert_api_v1_alerts__alert_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "alert_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Alert Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Alert",
+        "tags": [
+          "equipo asistencial"
+        ]
+      }
+    },
+    "/api/v1/alerts/{alert_id}/contact": {
+      "post": {
+        "operationId": "contact_family_api_v1_alerts__alert_id__contact_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "alert_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Alert Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactFamilyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Contact Family",
+        "tags": [
+          "equipo asistencial"
+        ]
+      }
+    },
+    "/api/v1/alerts/{alert_id}/resolve": {
+      "post": {
+        "operationId": "resolve_alert_api_v1_alerts__alert_id__resolve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "alert_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Alert Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveAlertRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Resolve Alert",
+        "tags": [
+          "equipo asistencial"
+        ]
+      }
+    },
+    "/api/v1/assistant/media/upload-intent": {
+      "post": {
+        "description": "Reserva una ruta opaca y devuelve una URL firmada de corta duraci�n.\n\nEl nombre no incluye datos de la persona: s�lo un identificador aleatorio.",
+        "operationId": "upload_intent_api_v1_assistant_media_upload_intent_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MediaUploadIntentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediaUploadIntentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Upload Intent",
+        "tags": [
+          "asistente"
+        ]
+      }
+    },
+    "/api/v1/assistant/messages/{message_id}/confirm-action": {
+      "post": {
+        "description": "Convierte una acci�n propuesta en un comando idempotente.\n\nEs el �nico punto donde una conversaci�n escribe. El modelo no llega hasta\naqu�: llega la confirmaci�n expl�cita de la persona.",
+        "operationId": "confirm_action_api_v1_assistant_messages__message_id__confirm_action_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "message_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Message Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantMessageOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Confirm Action",
+        "tags": [
+          "asistente"
+        ]
+      }
+    },
+    "/api/v1/assistant/sessions": {
+      "post": {
+        "operationId": "start_session_api_v1_assistant_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartSessionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Start Session",
+        "tags": [
+          "asistente"
+        ]
+      }
+    },
+    "/api/v1/assistant/sessions/{session_id}": {
+      "get": {
+        "operationId": "get_session_api_v1_assistant_sessions__session_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Session",
+        "tags": [
+          "asistente"
+        ]
+      }
+    },
+    "/api/v1/assistant/sessions/{session_id}/messages": {
+      "post": {
+        "operationId": "send_message_api_v1_assistant_sessions__session_id__messages_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendMessageRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantMessageOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Send Message",
+        "tags": [
+          "asistente"
+        ]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "operationId": "login_api_v1_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenPair"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Login",
+        "tags": [
+          "identidad"
+        ]
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "description": "Cierre de sesi�n del piloto.\n\nLos JWT son de vida corta y sin estado, as� que el borrado efectivo ocurre\nen el cliente: elimina tokens de SecureStore y la cach� local vinculada a la\nsesi�n. Este endpoint existe para que ese contrato quede expl�cito y para\npoder a�adir una lista de revocaci�n sin cambiar el cliente.",
+        "operationId": "logout_api_v1_auth_logout_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Logout",
+        "tags": [
+          "identidad"
+        ]
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "operationId": "refresh_api_v1_auth_refresh_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenPair"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Refresh",
+        "tags": [
+          "identidad"
+        ]
+      }
+    },
+    "/api/v1/care-team/alerts": {
+      "get": {
+        "operationId": "list_alerts_api_v1_care_team_alerts_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^(open|in_progress|resolved|pending)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "risk",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^(green|yellow|red)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Risk"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AlertOut"
+                  },
+                  "title": "Response List Alerts Api V1 Care Team Alerts Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Alerts",
+        "tags": [
+          "equipo asistencial"
+        ]
+      }
+    },
+    "/api/v1/care-team/overview": {
+      "get": {
+        "operationId": "overview_api_v1_care_team_overview_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OverviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Overview",
+        "tags": [
+          "equipo asistencial"
+        ]
+      }
+    },
+    "/api/v1/care-team/patients": {
+      "get": {
+        "operationId": "list_patients_api_v1_care_team_patients_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "risk",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^(green|yellow|red)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Risk"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^(all|pending_confirmation|with_barrier|missed)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CareTeamPatientRow"
+                  },
+                  "title": "Response List Patients Api V1 Care Team Patients Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Patients",
+        "tags": [
+          "equipo asistencial"
+        ]
+      }
+    },
+    "/api/v1/knowledge/documents": {
+      "get": {
+        "operationId": "list_documents_api_v1_knowledge_documents_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DocumentOut"
+                  },
+                  "title": "Response List Documents Api V1 Knowledge Documents Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Documents",
+        "tags": [
+          "conocimiento"
+        ]
+      },
+      "post": {
+        "operationId": "create_document_api_v1_knowledge_documents_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDocumentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Document",
+        "tags": [
+          "conocimiento"
+        ]
+      }
+    },
+    "/api/v1/knowledge/documents/{document_id}/versions": {
+      "post": {
+        "operationId": "create_version_api_v1_knowledge_documents__document_id__versions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Version",
+        "tags": [
+          "conocimiento"
+        ]
+      }
+    },
+    "/api/v1/knowledge/versions/{version_id}/preview": {
+      "get": {
+        "operationId": "preview_version_api_v1_knowledge_versions__version_id__preview_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "version_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Version Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionPreviewOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Preview Version",
+        "tags": [
+          "conocimiento"
+        ]
+      }
+    },
+    "/api/v1/knowledge/versions/{version_id}/process": {
+      "post": {
+        "description": "Extrae, fragmenta y embebe. Deja la versi�n pendiente de revisi�n.",
+        "operationId": "process_version_api_v1_knowledge_versions__version_id__process_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "version_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Version Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Process Version",
+        "tags": [
+          "conocimiento"
+        ]
+      }
+    },
+    "/api/v1/knowledge/versions/{version_id}/publish": {
+      "post": {
+        "operationId": "publish_version_api_v1_knowledge_versions__version_id__publish_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "version_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Version Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Publish Version",
+        "tags": [
+          "conocimiento"
+        ]
+      }
+    },
+    "/api/v1/knowledge/versions/{version_id}/retire": {
+      "post": {
+        "operationId": "retire_version_api_v1_knowledge_versions__version_id__retire_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "version_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Version Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Retire Version",
+        "tags": [
+          "conocimiento"
+        ]
+      }
+    },
+    "/api/v1/me": {
+      "get": {
+        "operationId": "me_api_v1_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Me",
+        "tags": [
+          "identidad"
+        ]
+      }
+    },
+    "/api/v1/milestones/{milestone_id}/barriers": {
+      "post": {
+        "operationId": "report_barrier_api_v1_milestones__milestone_id__barriers_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "milestone_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Milestone Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportBarrierRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Report Barrier",
+        "tags": [
+          "familia"
+        ]
+      }
+    },
+    "/api/v1/milestones/{milestone_id}/confirmations": {
+      "post": {
+        "operationId": "confirm_attendance_api_v1_milestones__milestone_id__confirmations_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "milestone_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Milestone Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmAttendanceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MilestoneOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Confirm Attendance",
+        "tags": [
+          "familia"
+        ]
+      }
+    },
+    "/api/v1/milestones/{milestone_id}/reschedule": {
+      "post": {
+        "operationId": "reschedule_milestone_api_v1_milestones__milestone_id__reschedule_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "milestone_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Milestone Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RescheduleMilestoneRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MilestoneOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Reschedule Milestone",
+        "tags": [
+          "equipo asistencial"
+        ]
+      }
+    },
+    "/api/v1/notifications": {
+      "get": {
+        "operationId": "list_notifications_api_v1_notifications_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/NotificationOut"
+                  },
+                  "title": "Response List Notifications Api V1 Notifications Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Notifications",
+        "tags": [
+          "notificaciones"
+        ]
+      }
+    },
+    "/api/v1/notifications/{notification_id}/read": {
+      "post": {
+        "operationId": "mark_read_api_v1_notifications__notification_id__read_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "notification_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Notification Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Mark Read",
+        "tags": [
+          "notificaciones"
+        ]
+      }
+    },
+    "/api/v1/operations/capacity": {
+      "get": {
+        "operationId": "capacity_api_v1_operations_capacity_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "day",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Day"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapacityResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Capacity",
+        "tags": [
+          "operaci�n asistencial"
+        ]
+      }
+    },
+    "/api/v1/operations/social-work": {
+      "get": {
+        "operationId": "social_work_api_v1_operations_social_work_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialWorkQueueResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Social Work",
+        "tags": [
+          "operaci�n asistencial"
+        ]
+      }
+    },
+    "/api/v1/operations/workload": {
+      "get": {
+        "operationId": "workload_api_v1_operations_workload_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkloadResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Workload",
+        "tags": [
+          "operaci�n asistencial"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/feelings": {
+      "post": {
+        "operationId": "record_feeling_api_v1_patients__patient_id__feelings_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordFeelingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeelingOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Record Feeling",
+        "tags": [
+          "familia"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/milestones": {
+      "post": {
+        "operationId": "create_milestone_api_v1_patients__patient_id__milestones_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMilestoneRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MilestoneOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Milestone",
+        "tags": [
+          "equipo asistencial"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/route": {
+      "get": {
+        "operationId": "get_route_api_v1_patients__patient_id__route_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Route",
+        "tags": [
+          "familia"
+        ]
+      }
+    },
+    "/api/v1/sync/bootstrap": {
+      "get": {
+        "operationId": "bootstrap_api_v1_sync_bootstrap_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BootstrapResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Bootstrap",
+        "tags": [
+          "sincronizaci�n"
+        ]
+      }
+    },
+    "/api/v1/sync/operations": {
+      "post": {
+        "operationId": "push_operations_api_v1_sync_operations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyncOperationsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncOperationsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Push Operations",
+        "tags": [
+          "sincronizaci�n"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Health Health Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "infraestructura"
+        ]
+      }
+    }
+  }
+}

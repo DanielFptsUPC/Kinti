@@ -1,0 +1,23 @@
+services:
+  db:
+    # PostgreSQL 16 con `pgvector` precompilado: la misma extensión que ofrece
+    # Supabase, para que el desarrollo local ejercite la búsqueda vectorial real
+    # y no un sustituto.
+    image: pgvector/pgvector:pg16
+    container_name: kinti-db
+    environment:
+      POSTGRES_USER: kinti
+      POSTGRES_PASSWORD: kinti
+      POSTGRES_DB: kinti
+    ports:
+      - "5433:5432"
+    volumes:
+      - kinti-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kinti -d kinti"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  kinti-db-data:
