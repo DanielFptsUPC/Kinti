@@ -34,6 +34,12 @@ async def login(body: schemas.LoginRequest, session: SessionDep) -> schemas.Toke
     user = await identity_service.authenticate(session, body.email, body.password)
     if user is None:
         raise _invalid_credentials()
+    if user.role == "patient":
+        # Las cuentas del menor tienen su propia puerta (`/auth/patient-login`) y
+        # un identificador interno que nadie le comunica. Rechazarlas aquí impide
+        # que el alta infantil abra, de rebote, una entrada por el formulario
+        # adulto. El mensaje es el genérico: no confirma que la cuenta exista.
+        raise _invalid_credentials()
     return _issue_tokens(str(user.id), user.role)
 
 

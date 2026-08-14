@@ -27,6 +27,10 @@ export default function CaregiverLayout() {
         options={{ title: "Kinti", tabBarIcon: tabIcon("chatbubble-ellipses") }}
       />
       <Tabs.Screen
+        name="companion"
+        options={{ title: "Su espacio", tabBarIcon: tabIcon("happy") }}
+      />
+      <Tabs.Screen
         name="help"
         options={{ title: "Ayuda", tabBarIcon: tabIcon("help-buoy") }}
       />

@@ -22,7 +22,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { DemoBanner } from "@/components/DemoBanner";
-import { KintiMascot } from "@/components/KintiMascot";
+import { KintiLogo } from "@/components/KintiMascot";
 import { env } from "@/config/env";
 import { colors, radius, spacing, typography } from "@/theme/tokens";
 import { useKintiStore } from "@/state/store";
@@ -55,8 +55,7 @@ export default function LoginScreen() {
       >
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
           <View style={styles.hero}>
-            <KintiMascot size={80} />
-            <Text style={styles.logo}>Kinti</Text>
+            <KintiLogo width={220} />
             <Text style={styles.tagline}>Contigo en cada paso</Text>
           </View>
 
@@ -103,6 +102,14 @@ export default function LoginScreen() {
             onPress={() => void handleSubmit()}
             disabled={!canSubmit}
             loading={signingIn}
+          />
+
+          <Button
+            label="Soy el paciente"
+            variant="ghost"
+            icon="happy"
+            onPress={() => router.replace("/patient-login")}
+            accessibilityHint="Entra al espacio del paciente con alias y clave"
           />
 
           {env.isDev ? (

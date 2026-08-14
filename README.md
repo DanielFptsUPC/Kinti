@@ -16,6 +16,9 @@ ayuda al equipo asistencial a intervenir antes de que se pierda la continuidad.
 - **Fase 3** (`phases/KINTI_FASE_3_SUPABASE_IA_CODEX.md`): base de conocimiento
   versionada con `pgvector`, búsqueda híbrida con citas y asistente
   conversacional con política de seguridad determinística.
+- **Fase 4** (`phases/KINTI_FASE_4_COORDINACION_ASISTENCIAL.md`): coordinación
+  de recuperación y Servicio Social, carga ponderada por responsable y
+  capacidad ambulatoria visible para decisiones humanas.
 
 | Documento | Qué contiene |
 |---|---|
@@ -24,6 +27,7 @@ ayuda al equipo asistencial a intervenir antes de que se pierda la continuidad.
 | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) | Despliegue, migración, respaldo, reversión e incidentes |
 | [`phases/BITACORA_FASE_2.md`](phases/BITACORA_FASE_2.md) | Comandos y resultados de la Fase 2 |
 | [`phases/BITACORA_FASE_3.md`](phases/BITACORA_FASE_3.md) | Comandos, resultados y bloqueos de la Fase 3 |
+| [`phases/BITACORA_FASE_4.md`](phases/BITACORA_FASE_4.md) | Implementación y validación de la coordinación asistencial |
 
 ---
 
@@ -159,7 +163,7 @@ kinti-mobile/
 │   ├── notifications.tsx         Centro de avisos interno
 │   ├── caregiver/                Inicio · Mi ruta · Ayuda · Perfil
 │   ├── child/                    Mi aventura · Cómo me siento
-│   └── care-team/                Resumen · Pacientes · Alertas
+│   └── care-team/                Resumen · Pacientes · Alertas · Coordinar
 │
 ├── src/
 │   ├── config/env.ts             Modo de datos y URL de la API
@@ -186,7 +190,7 @@ kinti-mobile/
 │   │   ├── api/v1/               Rutas HTTP y esquemas del contrato
 │   │   ├── modules/              identity · patients · care_routes · milestones
 │   │   │                         alerts · interventions · feelings · audit
-│   │   │                         notifications · sync
+│   │   │                         notifications · sync · operations
 │   │   ├── core/                 Configuración, base de datos, seguridad, tiempo
 │   │   ├── jobs/                 Trabajo periódico de continuidad
 │   │   ├── seed.py               Datos sintéticos reproducibles
@@ -242,9 +246,11 @@ POST /milestones/{id}/confirmations                 POST /milestones/{id}/barrie
 POST /patients/{id}/feelings
 GET  /care-team/overview  GET  /care-team/patients  GET  /care-team/alerts
 GET  /alerts/{id}         POST /alerts/{id}/contact POST /alerts/{id}/resolve
+POST /alerts/{id}/refer-social-work
 POST /patients/{id}/milestones                      POST /milestones/{id}/reschedule
 GET  /notifications       POST /notifications/{id}/read
 GET  /sync/bootstrap      POST /sync/operations
+GET  /operations/workload GET  /operations/capacity GET /operations/social-work
 ```
 
 `src/infrastructure/api/openapi.json` es el contrato congelado que verifica
@@ -420,7 +426,8 @@ docker compose up -d db
 .venv/Scripts/python -m app.jobs.process_continuity
 ```
 
-Resultados reales de la última ejecución en `phases/BITACORA_FASE_2.md`.
+Resultados reales de la última ejecución en `phases/BITACORA_FASE_4.md`:
+**335 pruebas en verde** (214 backend + 121 móvil) y un contrato de 37 rutas.
 
 La suite de pytest corre contra **PostgreSQL real** sobre una base separada
 (`kinti_test`), que se crea y se migra desde cero automáticamente. No usa SQLite:
@@ -474,16 +481,14 @@ seguridad antes de trabajar con información real.
 - **Python 3.14 en el entorno de desarrollo** aunque `pyproject.toml` declara
   `>=3.12`; toda la suite pasa en ambas.
 
-### Específicas de la Fase 3
+### Específicas de las Fases 3 y 4
 
-- **Supabase no está desplegado.** Todo el esquema, `pgvector` y la búsqueda
-  híbrida se validaron contra PostgreSQL 16 local con la misma extensión, pero no
-  contra un proyecto Supabase real: faltan credenciales. El procedimiento está en
-  [`docs/RUNBOOK.md`](docs/RUNBOOK.md) §2.
-- **El proveedor Vertex está escrito pero no verificado.** Nunca se ejecutó
-  contra el servicio. El archivo `app/modules/assistant/vertex.py` lo advierte en
-  su propia documentación. Las evaluaciones que hay se hicieron con el proveedor
-  determinístico, y **no dicen nada** sobre cómo se comportaría un modelo real.
+- **Supabase y la API base sí están desplegados**, pero los cambios locales de
+  Fase 4 requieren un nuevo despliegue de Render antes de demostrarlos contra la
+  API pública. Véase `phases/BITACORA_FASE_4.md`.
+- **El proveedor Vertex está escrito pero no verificado.** Falta una credencial
+  GCP con Vertex AI habilitado. Las evaluaciones actuales usan el proveedor
+  determinístico y no permiten afirmar el rendimiento de un modelo real.
 - **El anclaje léxico está activo por defecto.** Un fragmento sólo se cita si las
   palabras de la pregunta aparecen realmente en él. Es conservador a propósito
   mientras el proveedor de embeddings no esté validado; se puede desactivar
@@ -492,15 +497,22 @@ seguridad antes de trabajar con información real.
   el fake, la interfaz muestra el flujo completo —captura, confirmación,
   rechazo de imágenes clínicas— pero no hay reconocimiento efectivo.
 - **`ai_runs` crece sin límite**, igual que `processed_operations`.
+- **Los pesos de carga y umbrales de capacidad son hipótesis del prototipo.**
+  Deben calibrarse con Hematología, Enfermería, Servicio Social y Clínica de Día.
+- **El rol `care_team` reúne operación y atención en el prototipo.** Producción
+  requiere un perfil coordinador separado y una matriz RBAC institucional.
 
 ---
 
-## Trabajo recomendado para la Fase 4
+## Trabajo recomendado después de la Fase 4
 
-- Desplegar Supabase staging y ejecutar el runbook completo, incluida una prueba
-  real de restauración.
+- Validar el flujo con Hematología, Enfermería, Servicio Social, Clínica de Día
+  y familias usando datos ficticios.
+- Redesplegar la API de Fase 4 en Render y repetir los circuitos remotos.
 - Integrar y **evaluar** un modelo multimodal GA, registrando identificador,
   región y fecha en el ADR.
+- Confirmar el circuito físico con `npm.cmd run start:tunnel` y Expo Go.
+- Acordar una fuente institucional autorizada de agenda y capacidad.
 - Sustituir la autenticación de piloto por OIDC/SSO institucional real.
 - Sincronización delta y retención de `processed_operations` y `ai_runs`.
 - Notificaciones push con development build.

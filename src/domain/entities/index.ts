@@ -8,12 +8,104 @@
 
 export * from "@/types";
 
-/** Usuario autenticado del piloto. El niño no tiene credenciales propias. */
+/**
+ * Usuario autenticado del piloto.
+ *
+ * Desde la Fase 4 el menor **sí** tiene credenciales propias (`patient`), con
+ * un alias en vez de correo. Su sesión no comparte nada con la del cuidador.
+ */
 export interface SessionUser {
   id: string;
   email: string;
   displayName: string;
-  role: "caregiver" | "care_team";
+  role: "caregiver" | "care_team" | "patient";
+}
+
+// --------------------------------------------------------- Kinti Compañero
+
+/** Banda de desarrollo que elige el cuidador; decide el catálogo y el tono. */
+export type DevelopmentBand = "early" | "middle" | "adolescent";
+
+export type CompanionCategory =
+  | "breathing"
+  | "music"
+  | "drawing"
+  | "stories"
+  | "comfort_object"
+  | "caregiver_messages"
+  | "immediate_preparation";
+
+export interface CompanionActivity {
+  key: CompanionCategory;
+  title: string;
+  /** `0` significa «sin cronómetro»: la actividad dura lo que el niño quiera. */
+  durationSeconds: number;
+}
+
+/**
+ * Preparación inmediata (RF-NNA-12).
+ *
+ * Deliberadamente **no** tiene título ni tipo de hito: se dice cuándo, qué
+ * llevar y con quién, nunca qué procedimiento es.
+ */
+export interface ImmediatePreparation {
+  when: string;
+  bring?: string | null;
+  company: string;
+}
+
+/**
+ * Todo lo que el menor puede ver, y nada más.
+ *
+ * Es una lista blanca cerrada: no incluye hitos, semáforos, alertas, barreras
+ * ni riesgo. Añadir un campo aquí es una decisión explícita.
+ */
+export interface CompanionView {
+  greeting: string;
+  chosenName?: string | null;
+  avatarKey?: string | null;
+  comfortObject?: string | null;
+  developmentBand: DevelopmentBand;
+  activities: CompanionActivity[];
+  immediatePreparation?: ImmediatePreparation | null;
+}
+
+/** Formas de pedir apoyo. El sistema las transmite; no interpreta su causa. */
+export type SupportRequestType =
+  | "want_to_talk"
+  | "feeling_scared"
+  | "need_help"
+  | "want_company";
+
+export const SUPPORT_REQUEST_LABEL: Record<SupportRequestType, string> = {
+  want_to_talk: "Quiero hablar",
+  feeling_scared: "Tengo miedo",
+  need_help: "Necesito ayuda",
+  want_company: "Quiero compañía",
+};
+
+/**
+ * La cuenta del menor vista por el adulto que la administra.
+ *
+ * No expone el PIN ni ningún identificador de sesión: sirve para saber si la
+ * cuenta está activa y qué contenido se le habilitó.
+ */
+export interface PatientAccount {
+  patientId: string;
+  alias: string;
+  status: "active" | "suspended" | "locked";
+  developmentBand: DevelopmentBand;
+  enabledCategories: Record<string, boolean>;
+  consentedAt?: string | null;
+}
+
+export interface SupportRequest {
+  id: string;
+  patientId: string;
+  requestType: SupportRequestType;
+  status: "open" | "acknowledged" | "closed";
+  createdAt: string;
+  acknowledgedAt?: string | null;
 }
 
 /** Aviso del centro de notificaciones interno. */

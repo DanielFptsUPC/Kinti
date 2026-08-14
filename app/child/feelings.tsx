@@ -1,8 +1,17 @@
+/**
+ * Cómo me siento (RF-NNA-08).
+ *
+ * Una interacción, sin texto obligatorio. No hay racha, historial de días
+ * seguidos ni «hoy no registraste»: RF-NNA-15 excluye cualquier recompensa o
+ * reproche, y un contador de días es exactamente eso.
+ */
+
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text } from "react-native";
+import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { DemoBanner } from "@/components/DemoBanner";
+import { Button } from "@/components/Button";
 import { EmotionSelector } from "@/components/EmotionSelector";
 import { KintiMessage } from "@/components/KintiMascot";
 import { colors, spacing, typography } from "@/theme/tokens";
@@ -22,14 +31,20 @@ export default function ChildFeelingsScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       <ScrollView contentContainerStyle={styles.container}>
-        <DemoBanner />
         <Text style={styles.title}>¿Cómo te sientes hoy?</Text>
         <Text style={styles.subtitle}>Elige el dibujo que más se parece a ti.</Text>
 
         <EmotionSelector value={mood} onSelect={handleSelect} />
 
         {mood ? (
-          <KintiMessage message="Gracias por contarme. Recuerda que también puedes hablar de esto con tu cuidador o con el equipo que te acompaña." />
+          <>
+            <KintiMessage message="Gracias por contarme. Puedes cambiarlo cuando quieras." />
+            <Button
+              label="Quiero decirle algo a mi adulto"
+              onPress={() => router.push("/child/support")}
+              variant="secondary"
+            />
+          </>
         ) : null}
       </ScrollView>
     </SafeAreaView>

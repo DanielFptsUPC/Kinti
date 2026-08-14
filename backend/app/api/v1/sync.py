@@ -8,7 +8,7 @@ ahí. Es más simple de razonar y elimina toda una clase de errores de mezcla.
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 
-from app.api.deps import CurrentUser, SessionDep
+from app.api.deps import AdultUser, SessionDep
 from app.api.v1 import schemas
 from app.core.config import get_settings
 from app.core.time import utcnow
@@ -23,7 +23,7 @@ router = APIRouter(tags=["sincronización"])
 
 
 @router.get("/sync/bootstrap", response_model=schemas.BootstrapResponse)
-async def bootstrap(user: CurrentUser, session: SessionDep) -> schemas.BootstrapResponse:
+async def bootstrap(user: AdultUser, session: SessionDep) -> schemas.BootstrapResponse:
     patient_ids = await patients_service.authorized_patient_ids(session, user)
     context = await care_routes.load_context(session, patient_ids)
 
@@ -76,7 +76,7 @@ async def bootstrap(user: CurrentUser, session: SessionDep) -> schemas.Bootstrap
 
 @router.post("/sync/operations", response_model=schemas.SyncOperationsResponse)
 async def push_operations(
-    body: schemas.SyncOperationsRequest, user: CurrentUser, session: SessionDep
+    body: schemas.SyncOperationsRequest, user: AdultUser, session: SessionDep
 ) -> schemas.SyncOperationsResponse:
     settings = get_settings()
     if len(body.operations) > settings.max_sync_batch:

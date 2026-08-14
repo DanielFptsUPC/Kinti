@@ -1,4 +1,10 @@
-export type Role = "child" | "caregiver" | "care_team";
+/**
+ * `child` es el atajo de la demostración local, donde nadie inicia sesión.
+ * `patient` es la cuenta real del menor que emite el servidor: distinta del
+ * cuidador, limitada a un único registro asistencial y sin alcance operativo.
+ * Ambos llevan a la misma pantalla, **Mi espacio con Kinti**.
+ */
+export type Role = "child" | "patient" | "caregiver" | "care_team";
 
 export type RouteStatus = "on_track" | "confirmation_needed" | "support_needed";
 

@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { DemoBanner } from "@/components/DemoBanner";
-import { KintiMascot } from "@/components/KintiMascot";
+import { KintiLogo } from "@/components/KintiMascot";
 import { env } from "@/config/env";
 import { colors, radius, spacing, touchTarget, typography } from "@/theme/tokens";
 import { useKintiStore } from "@/state/store";
@@ -46,6 +46,7 @@ export default function RoleSelectionScreen() {
   // En modo conectado no se elige rol: lo determina el servidor tras el login.
   if (env.dataMode === "remote") {
     if (!authenticated) return <Redirect href="/login" />;
+    if (sessionRole === "patient") return <Redirect href="/child" />;
     return <Redirect href={sessionRole === "care_team" ? "/care-team" : "/caregiver"} />;
   }
 
@@ -58,8 +59,7 @@ export default function RoleSelectionScreen() {
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.hero}>
-          <KintiMascot size={96} />
-          <Text style={styles.logo}>Kinti</Text>
+          <KintiLogo width={240} />
           <Text style={styles.tagline}>Contigo en cada paso</Text>
         </View>
 

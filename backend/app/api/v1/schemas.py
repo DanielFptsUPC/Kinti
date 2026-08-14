@@ -47,7 +47,10 @@ CapacityState = Literal["underused", "balanced", "high", "overbooked"]
 Emotion = Literal["calm", "unsure", "worried", "tired"]
 OperationalRisk = Literal["green", "yellow", "red"]
 RouteStatus = Literal["on_track", "confirmation_needed", "support_needed"]
-Role = Literal["caregiver", "care_team"]
+#: `patient` es la cuenta del menor. Sólo abre el espacio Compañero: el rol
+#: viaja en el perfil para que el cliente sepa qué superficie montar, no para
+#: concederle alcance operativo — eso lo decide el servidor en cada ruta.
+Role = Literal["caregiver", "care_team", "patient"]
 
 
 def _camel(name: str) -> str:
@@ -462,3 +465,90 @@ class VersionPreviewOut(ApiModel):
     version: VersionOut
     chunk_count: int
     sections: list[str] = Field(default_factory=list)
+
+
+# ----------------------------------------------------- Kinti Compañero (Fase 4)
+
+
+DevelopmentBand = Literal["early", "middle", "adolescent"]
+SupportRequestType = Literal["want_to_talk", "feeling_scared", "need_help", "want_company"]
+AccountStatus = Literal["active", "suspended", "locked"]
+
+Alias = Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=60)]
+Pin = Annotated[str, StringConstraints(min_length=4, max_length=12)]
+
+
+class PatientLoginRequest(ApiModel):
+    """El menor entra con alias y PIN. No se le exige correo ni teléfono."""
+
+    alias: Alias
+    pin: Pin
+
+
+class PatientAccountRequest(ApiModel):
+    alias: Alias
+    pin: Pin
+    #: Consentimiento del apoderado, requerido por el procedimiento institucional.
+    consent_confirmed: bool = False
+
+
+class PatientAccountUpdateRequest(ApiModel):
+    status: AccountStatus | None = None
+    pin: Pin | None = None
+    development_band: DevelopmentBand | None = None
+    enabled_categories: dict[str, bool] | None = None
+
+
+class PatientAccountOut(ApiModel):
+    patient_id: UUID
+    alias: str
+    status: AccountStatus
+    development_band: DevelopmentBand
+    enabled_categories: dict[str, bool]
+    consented_at: datetime | None = None
+
+
+class CompanionActivityOut(ApiModel):
+    key: str
+    title: str
+    duration_seconds: int
+
+
+class ImmediatePreparationOut(ApiModel):
+    """Preparación inmediata **sin** nombre clínico del procedimiento."""
+
+    when: str
+    bring: str | None = None
+    company: str | None = None
+
+
+class CompanionViewOut(ApiModel):
+    """Todo lo que el menor puede ver. Lista blanca, no filtrado de la interfaz."""
+
+    greeting: str
+    chosen_name: str | None = None
+    avatar_key: str | None = None
+    comfort_object: str | None = None
+    development_band: DevelopmentBand
+    activities: list[CompanionActivityOut] = Field(default_factory=list)
+    immediate_preparation: ImmediatePreparationOut | None = None
+
+
+class CompanionPreferencesRequest(ApiModel):
+    chosen_name: Annotated[str, StringConstraints(max_length=60)] | None = None
+    avatar_key: Annotated[str, StringConstraints(max_length=40)] | None = None
+    comfort_object: Annotated[str, StringConstraints(max_length=40)] | None = None
+
+
+class SupportRequestCreate(ApiModel):
+    request_type: SupportRequestType
+    operation_id: UUID | None = None
+
+
+class SupportRequestOut(ApiModel):
+    id: UUID
+    patient_id: UUID
+    request_type: SupportRequestType
+    status: Literal["open", "acknowledged", "closed"]
+    created_at: datetime
+    acknowledged_at: datetime | None = None

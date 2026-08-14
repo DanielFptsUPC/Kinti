@@ -26,6 +26,10 @@ export default function CareTeamLayout() {
         name="alerts"
         options={{ title: "Alertas", tabBarIcon: tabIcon("warning") }}
       />
+      <Tabs.Screen
+        name="operations"
+        options={{ title: "Coordinar", tabBarIcon: tabIcon("git-compare") }}
+      />
     </Tabs>
   );
 }

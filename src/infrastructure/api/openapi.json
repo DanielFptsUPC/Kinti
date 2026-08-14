@@ -439,6 +439,145 @@
         "title": "CitationOut",
         "type": "object"
       },
+      "CompanionActivityOut": {
+        "properties": {
+          "durationSeconds": {
+            "title": "Durationseconds",
+            "type": "integer"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "title",
+          "durationSeconds"
+        ],
+        "title": "CompanionActivityOut",
+        "type": "object"
+      },
+      "CompanionPreferencesRequest": {
+        "properties": {
+          "avatarKey": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatarkey"
+          },
+          "chosenName": {
+            "anyOf": [
+              {
+                "maxLength": 60,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chosenname"
+          },
+          "comfortObject": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comfortobject"
+          }
+        },
+        "title": "CompanionPreferencesRequest",
+        "type": "object"
+      },
+      "CompanionViewOut": {
+        "description": "Todo lo que el menor puede ver. Lista blanca, no filtrado de la interfaz.",
+        "properties": {
+          "activities": {
+            "items": {
+              "$ref": "#/components/schemas/CompanionActivityOut"
+            },
+            "title": "Activities",
+            "type": "array"
+          },
+          "avatarKey": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatarkey"
+          },
+          "chosenName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chosenname"
+          },
+          "comfortObject": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comfortobject"
+          },
+          "developmentBand": {
+            "enum": [
+              "early",
+              "middle",
+              "adolescent"
+            ],
+            "title": "Developmentband",
+            "type": "string"
+          },
+          "greeting": {
+            "title": "Greeting",
+            "type": "string"
+          },
+          "immediatePreparation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ImmediatePreparationOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "greeting",
+          "developmentBand"
+        ],
+        "title": "CompanionViewOut",
+        "type": "object"
+      },
       "ConfirmActionRequest": {
         "properties": {
           "operationId": {
@@ -756,6 +895,42 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "ImmediatePreparationOut": {
+        "description": "Preparaci�n inmediata **sin** nombre cl�nico del procedimiento.",
+        "properties": {
+          "bring": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bring"
+          },
+          "company": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company"
+          },
+          "when": {
+            "title": "When",
+            "type": "string"
+          }
+        },
+        "required": [
+          "when"
+        ],
+        "title": "ImmediatePreparationOut",
+        "type": "object"
+      },
       "LoginRequest": {
         "properties": {
           "email": {
@@ -1060,6 +1235,180 @@
         "title": "OverviewResponse",
         "type": "object"
       },
+      "PatientAccountOut": {
+        "properties": {
+          "alias": {
+            "title": "Alias",
+            "type": "string"
+          },
+          "consentedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consentedat"
+          },
+          "developmentBand": {
+            "enum": [
+              "early",
+              "middle",
+              "adolescent"
+            ],
+            "title": "Developmentband",
+            "type": "string"
+          },
+          "enabledCategories": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "title": "Enabledcategories",
+            "type": "object"
+          },
+          "patientId": {
+            "format": "uuid",
+            "title": "Patientid",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "suspended",
+              "locked"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "patientId",
+          "alias",
+          "status",
+          "developmentBand",
+          "enabledCategories"
+        ],
+        "title": "PatientAccountOut",
+        "type": "object"
+      },
+      "PatientAccountRequest": {
+        "properties": {
+          "alias": {
+            "maxLength": 60,
+            "minLength": 2,
+            "title": "Alias",
+            "type": "string"
+          },
+          "consentConfirmed": {
+            "default": false,
+            "title": "Consentconfirmed",
+            "type": "boolean"
+          },
+          "pin": {
+            "maxLength": 12,
+            "minLength": 4,
+            "title": "Pin",
+            "type": "string"
+          }
+        },
+        "required": [
+          "alias",
+          "pin"
+        ],
+        "title": "PatientAccountRequest",
+        "type": "object"
+      },
+      "PatientAccountUpdateRequest": {
+        "properties": {
+          "developmentBand": {
+            "anyOf": [
+              {
+                "enum": [
+                  "early",
+                  "middle",
+                  "adolescent"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Developmentband"
+          },
+          "enabledCategories": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "boolean"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enabledcategories"
+          },
+          "pin": {
+            "anyOf": [
+              {
+                "maxLength": 12,
+                "minLength": 4,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pin"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "active",
+                  "suspended",
+                  "locked"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "title": "PatientAccountUpdateRequest",
+        "type": "object"
+      },
+      "PatientLoginRequest": {
+        "description": "El menor entra con alias y PIN. No se le exige correo ni tel�fono.",
+        "properties": {
+          "alias": {
+            "maxLength": 60,
+            "minLength": 2,
+            "title": "Alias",
+            "type": "string"
+          },
+          "pin": {
+            "maxLength": 12,
+            "minLength": 4,
+            "title": "Pin",
+            "type": "string"
+          }
+        },
+        "required": [
+          "alias",
+          "pin"
+        ],
+        "title": "PatientLoginRequest",
+        "type": "object"
+      },
       "PatientOut": {
         "properties": {
           "age": {
@@ -1176,6 +1525,36 @@
           "mood"
         ],
         "title": "RecordFeelingRequest",
+        "type": "object"
+      },
+      "ReferSocialWorkRequest": {
+        "properties": {
+          "internalNote": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Internalnote"
+          },
+          "operationId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operationid"
+          }
+        },
+        "title": "ReferSocialWorkRequest",
         "type": "object"
       },
       "RefreshRequest": {
@@ -1584,6 +1963,96 @@
         "title": "StartSessionRequest",
         "type": "object"
       },
+      "SupportRequestCreate": {
+        "properties": {
+          "operationId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operationid"
+          },
+          "requestType": {
+            "enum": [
+              "want_to_talk",
+              "feeling_scared",
+              "need_help",
+              "want_company"
+            ],
+            "title": "Requesttype",
+            "type": "string"
+          }
+        },
+        "required": [
+          "requestType"
+        ],
+        "title": "SupportRequestCreate",
+        "type": "object"
+      },
+      "SupportRequestOut": {
+        "properties": {
+          "acknowledgedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acknowledgedat"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "patientId": {
+            "format": "uuid",
+            "title": "Patientid",
+            "type": "string"
+          },
+          "requestType": {
+            "enum": [
+              "want_to_talk",
+              "feeling_scared",
+              "need_help",
+              "want_company"
+            ],
+            "title": "Requesttype",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "acknowledged",
+              "closed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "patientId",
+          "requestType",
+          "status",
+          "createdAt"
+        ],
+        "title": "SupportRequestOut",
+        "type": "object"
+      },
       "SyncOperation": {
         "properties": {
           "operationId": {
@@ -1607,6 +2076,7 @@
               "report_barrier",
               "record_feeling",
               "mark_family_contacted",
+              "refer_social_work",
               "resolve_alert",
               "create_milestone",
               "reschedule_milestone"
@@ -1736,7 +2206,8 @@
           "role": {
             "enum": [
               "caregiver",
-              "care_team"
+              "care_team",
+              "patient"
             ],
             "title": "Role",
             "type": "string"
@@ -2071,6 +2542,64 @@
           }
         ],
         "summary": "Contact Family",
+        "tags": [
+          "equipo asistencial"
+        ]
+      }
+    },
+    "/api/v1/alerts/{alert_id}/refer-social-work": {
+      "post": {
+        "operationId": "refer_social_work_api_v1_alerts__alert_id__refer_social_work_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "alert_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Alert Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReferSocialWorkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Refer Social Work",
         "tags": [
           "equipo asistencial"
         ]
@@ -2453,6 +2982,48 @@
         ]
       }
     },
+    "/api/v1/auth/patient-login": {
+      "post": {
+        "description": "Sesi�n restringida del menor.\n\nEl token lleva `role=patient`; el servidor lo limita a su �nico paciente\nvinculado. **Nunca habilita Kinti Familia ni Kinti Equipo.**",
+        "operationId": "patient_login_api_v1_auth_patient_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatientLoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenPair"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Patient Login",
+        "tags": [
+          "compa�ero"
+        ]
+      }
+    },
     "/api/v1/auth/refresh": {
       "post": {
         "operationId": "refresh_api_v1_auth_refresh_post",
@@ -2669,6 +3240,223 @@
         "summary": "List Patients",
         "tags": [
           "equipo asistencial"
+        ]
+      }
+    },
+    "/api/v1/caregiver/patients/{patient_id}/patient-account": {
+      "patch": {
+        "description": "Recupera, suspende o configura el contenido habilitado.\n\nSuspender **no borra** el registro asistencial ni sus hitos.",
+        "operationId": "update_patient_account_api_v1_caregiver_patients__patient_id__patient_account_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatientAccountUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientAccountOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Patient Account",
+        "tags": [
+          "compa�ero"
+        ]
+      },
+      "post": {
+        "description": "Alta de la cuenta infantil, con consentimiento expl�cito del apoderado.",
+        "operationId": "activate_patient_account_api_v1_caregiver_patients__patient_id__patient_account_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatientAccountRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientAccountOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Activate Patient Account",
+        "tags": [
+          "compa�ero"
+        ]
+      }
+    },
+    "/api/v1/caregiver/patients/{patient_id}/support-requests": {
+      "get": {
+        "description": "El cuidador recibe las solicitudes, no cada interacci�n del menor.",
+        "operationId": "list_patient_support_requests_api_v1_caregiver_patients__patient_id__support_requests_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SupportRequestOut"
+                  },
+                  "title": "Response List Patient Support Requests Api V1 Caregiver Patients  Patient Id  Support Requests Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Patient Support Requests",
+        "tags": [
+          "compa�ero"
+        ]
+      }
+    },
+    "/api/v1/caregiver/support-requests/{request_id}/acknowledge": {
+      "post": {
+        "operationId": "acknowledge_request_api_v1_caregiver_support_requests__request_id__acknowledge_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupportRequestOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Acknowledge Request",
+        "tags": [
+          "compa�ero"
         ]
       }
     },
@@ -3379,6 +4167,172 @@
         "summary": "Workload",
         "tags": [
           "operaci�n asistencial"
+        ]
+      }
+    },
+    "/api/v1/patient/me/companion": {
+      "get": {
+        "operationId": "companion_view_api_v1_patient_me_companion_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanionViewOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Companion View",
+        "tags": [
+          "compa�ero"
+        ]
+      }
+    },
+    "/api/v1/patient/me/feelings": {
+      "post": {
+        "description": "El menor registra c�mo se siente. Una interacci�n, sin texto obligatorio.\n\nNo genera alertas ni participa en ninguna priorizaci�n: acompa�a.",
+        "operationId": "record_own_feeling_api_v1_patient_me_feelings_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordFeelingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeelingOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Record Own Feeling",
+        "tags": [
+          "compa�ero"
+        ]
+      }
+    },
+    "/api/v1/patient/me/preferences": {
+      "post": {
+        "operationId": "update_own_preferences_api_v1_patient_me_preferences_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanionPreferencesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanionViewOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Own Preferences",
+        "tags": [
+          "compa�ero"
+        ]
+      }
+    },
+    "/api/v1/patient/me/support-requests": {
+      "post": {
+        "description": "�Quiero hablar�, �tengo miedo�, �necesito ayuda�, �quiero compa��a�.\n\nLlega al adulto responsable. El sistema no interpreta la causa.",
+        "operationId": "request_support_api_v1_patient_me_support_requests_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupportRequestCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupportRequestOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Request Support",
+        "tags": [
+          "compa�ero"
         ]
       }
     },

@@ -129,6 +129,7 @@ describe("paridad de comandos sincronizables", () => {
       "report_barrier",
       "record_feeling",
       "mark_family_contacted",
+      "refer_social_work",
       "resolve_alert",
       "create_milestone",
       "reschedule_milestone",
@@ -163,10 +164,25 @@ describe("cobertura de endpoints", () => {
       "/api/v1/sync/bootstrap",
       "/api/v1/sync/operations",
       "/api/v1/notifications/{notification_id}/read",
+      "/api/v1/auth/patient-login",
+      "/api/v1/patient/me/companion",
+      "/api/v1/patient/me/feelings",
+      "/api/v1/patient/me/support-requests",
+      "/api/v1/patient/me/preferences",
     ];
     for (const path of used) {
       expect(Object.keys(schema.paths)).toContain(path);
     }
+  });
+
+  it("no expone ninguna ruta infantil parametrizada por paciente", () => {
+    // La frontera es de forma, no de comprobación: si ninguna ruta del menor
+    // acepta un identificador, no hay superficie donde pedir otro paciente.
+    const childRoutes = Object.keys(schema.paths).filter((p) =>
+      p.startsWith("/api/v1/patient/me"),
+    );
+    expect(childRoutes.length).toBeGreaterThan(0);
+    expect(childRoutes.filter((p) => p.includes("{"))).toEqual([]);
   });
 
   it("mantiene todo bajo /api/v1, salvo los chequeos de infraestructura", () => {

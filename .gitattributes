@@ -1,0 +1,8 @@
+# Los scripts de shell deben llegar al contenedor con finales de línea LF.
+#
+# No es cosmético: si Git los entrega con CRLF —el valor por defecto de
+# `core.autocrlf` en Windows—, el intérprete lee `#!/bin/sh\r` y el contenedor
+# falla con «no such file or directory», un mensaje que no menciona el problema
+# real y cuesta horas de diagnóstico.
+*.sh text eol=lf
+Dockerfile text eol=lf

@@ -22,6 +22,8 @@ from app.core.database import SessionLocal
 from app.core.security import hash_password
 from app.core.time import utcnow
 from app.modules.alerts.models import BarrierAlert
+from app.modules.companion.models import PatientContentSettings, PatientUserLink
+from app.modules.companion.service import DEFAULT_ENABLED
 from app.modules.identity.models import User
 from app.modules.milestones.models import Milestone
 from app.modules.operations.models import AmbulatoryCapacitySlot
@@ -36,6 +38,12 @@ CAREGIVER_MATEO_EMAIL = "cuidador.mateo@kinti.demo"
 CAREGIVER_LUCIA_EMAIL = "cuidador.lucia@kinti.demo"
 CARE_TEAM_EMAIL = "equipo@kinti.demo"
 CARE_TEAM_SECOND_EMAIL = "equipo.turno2@kinti.demo"
+
+#: Cuenta del menor para la demostración. El alias sustituye al correo: un niño
+#: puede no tener uno, y exigirlo convertiría la cuenta en un dato de contacto
+#: personal que el piloto no necesita.
+PATIENT_ALIAS = "mateo-colibri"
+PATIENT_PIN = "2468"
 
 
 def _at(days: int, hour: int = 9, minute: int = 0):
@@ -146,6 +154,51 @@ async def _add_milestones(session: AsyncSession, patient_id: UUID, rows: list[di
         )
 
 
+async def _activate_companion_account(
+    session: AsyncSession, caregiver: User, patient: Patient
+) -> None:
+    """Cuenta de Kinti Compañero para Mateo.
+
+    Se crea aquí, y no con `companion.activate_account`, porque ese camino exige
+    un vínculo cuidador–paciente que el seed aún no ha registrado en este punto.
+    El resultado es el mismo: alias, PIN y consentimiento del apoderado.
+    """
+    existing = await session.scalar(
+        select(PatientUserLink).where(PatientUserLink.patient_id == patient.id)
+    )
+    if existing is not None:
+        return
+
+    account = User(
+        email=f"patient.{patient.id}@kinti.local",
+        display_name=PATIENT_ALIAS,
+        password_hash=hash_password(PATIENT_PIN),
+        role="patient",
+        is_active=True,
+    )
+    session.add(account)
+    await session.flush()
+
+    session.add(
+        PatientUserLink(
+            user_id=account.id,
+            patient_id=patient.id,
+            status="active",
+            activated_by=caregiver.id,
+            consented_at=utcnow(),
+        )
+    )
+    session.add(
+        PatientContentSettings(
+            patient_id=patient.id,
+            development_band="middle",
+            enabled_categories=dict(DEFAULT_ENABLED),
+            updated_by=caregiver.id,
+        )
+    )
+    await session.flush()
+
+
 async def seed(session: AsyncSession) -> dict[str, str]:
     settings = get_settings()
     password = settings.seed_password
@@ -206,6 +259,8 @@ async def seed(session: AsyncSession) -> dict[str, str]:
         caregiver_name="Milagros, mamá de Valentina",
         contact_phone="+51 900 000 003 (ficticio)",
     )
+
+    await _activate_companion_account(session, caregiver_mateo, mateo)
 
     await _link_caregiver(session, caregiver_mateo, mateo)
     await _link_caregiver(session, caregiver_lucia, lucia)
@@ -398,6 +453,8 @@ async def seed(session: AsyncSession) -> dict[str, str]:
         "care_team": CARE_TEAM_EMAIL,
         "care_team_second": CARE_TEAM_SECOND_EMAIL,
         "password": password,
+        "patient_alias": PATIENT_ALIAS,
+        "patient_pin": PATIENT_PIN,
     }
 
 

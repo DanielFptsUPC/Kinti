@@ -41,6 +41,7 @@
   },
   "scripts": {
     "start": "expo start",
+    "start:lan": "expo start --lan --clear",
     "start:tunnel": "expo start --tunnel --clear",
     "android": "expo start --android",
     "ios": "expo start --ios",
@@ -50,7 +51,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "api:contract": "node scripts/export-openapi.mjs",
-    "tunnel:backend": "node scripts/tunnel-backend.mjs"
+    "tunnel:backend": "node scripts/tunnel-backend.mjs",
+    "branding": "node scripts/build-branding.mjs"
   },
   "private": true,
   "jest": {

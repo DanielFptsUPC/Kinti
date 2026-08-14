@@ -10,8 +10,15 @@ import { env } from "@/config/env";
 import type {
   AppNotification,
   AssistantMessage,
+  CompanionCategory,
+  CompanionView,
+  DevelopmentBand,
+  FeelingCheckIn,
   OperationsDashboard,
+  PatientAccount,
   Snapshot,
+  SupportRequest,
+  SupportRequestType,
   SyncOperationResult,
 } from "@/domain/entities";
 import {
@@ -49,7 +56,7 @@ export class ApiError extends Error {
 }
 
 interface RequestOptions {
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "PATCH";
   body?: unknown;
   authenticated?: boolean;
   /** Evita bucles infinitos de renovación. */
@@ -161,8 +168,57 @@ export const api = {
     });
   },
 
+  /**
+   * Puerta del menor: alias y PIN, sin correo ni teléfono (RF-NNA-05).
+   *
+   * Devuelve un token `patient` que el servidor limita a un único registro
+   * asistencial. **No sirve** para `/sync/bootstrap` ni para ninguna pantalla
+   * adulta: esas rutas lo rechazan con 403.
+   */
+  async patientLogin(alias: string, pin: string): Promise<LoginResult> {
+    return request<LoginResult>("/auth/patient-login", {
+      method: "POST",
+      body: { alias, pin },
+      authenticated: false,
+    });
+  },
+
   async logout(): Promise<void> {
     await request<void>("/auth/logout", { method: "POST" });
+  },
+
+  // ------------------------------------------------------ Kinti Compañero
+
+  async companionView(): Promise<CompanionView> {
+    return request<CompanionView>("/patient/me/companion");
+  },
+
+  async recordOwnFeeling(mood: string, operationId?: string): Promise<FeelingCheckIn> {
+    return request<FeelingCheckIn>("/patient/me/feelings", {
+      method: "POST",
+      body: { mood, operationId },
+    });
+  },
+
+  async requestSupport(
+    requestType: SupportRequestType,
+    operationId?: string,
+  ): Promise<SupportRequest> {
+    return request<SupportRequest>("/patient/me/support-requests", {
+      method: "POST",
+      body: { requestType, operationId },
+    });
+  },
+
+  async saveCompanionPreferences(preferences: {
+    chosenName?: string;
+    avatarKey?: string;
+    comfortObject?: string;
+  }): Promise<CompanionView> {
+    return request<CompanionView>("/patient/me/preferences", {
+      method: "POST",
+      body: preferences,
+    });
   },
 
   async bootstrap(): Promise<Snapshot> {
@@ -198,6 +254,43 @@ export const api = {
       request<OperationsDashboard["socialWork"]>("/operations/social-work"),
     ]);
     return { workload, capacity, socialWork };
+  },
+
+  // ------------------------------- administración adulta del espacio infantil
+
+  async activatePatientAccount(
+    patientId: string,
+    body: { alias: string; pin: string; consentConfirmed: boolean },
+  ): Promise<PatientAccount> {
+    return request<PatientAccount>(`/caregiver/patients/${patientId}/patient-account`, {
+      method: "POST",
+      body,
+    });
+  },
+
+  async updatePatientAccount(
+    patientId: string,
+    body: {
+      status?: "active" | "suspended";
+      pin?: string;
+      developmentBand?: DevelopmentBand;
+      enabledCategories?: Partial<Record<CompanionCategory, boolean>>;
+    },
+  ): Promise<PatientAccount> {
+    return request<PatientAccount>(`/caregiver/patients/${patientId}/patient-account`, {
+      method: "PATCH",
+      body,
+    });
+  },
+
+  async patientSupportRequests(patientId: string): Promise<SupportRequest[]> {
+    return request<SupportRequest[]>(`/caregiver/patients/${patientId}/support-requests`);
+  },
+
+  async acknowledgeSupportRequest(requestId: string): Promise<SupportRequest> {
+    return request<SupportRequest>(`/caregiver/support-requests/${requestId}/acknowledge`, {
+      method: "POST",
+    });
   },
 
   // ----------------------------------------------------------- asistente

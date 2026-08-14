@@ -16,6 +16,12 @@ from app.modules.assistant.models import (
     SafetyEvent,
 )
 from app.modules.audit.models import AuditEvent
+from app.modules.companion.models import (
+    CompanionPreferences,
+    PatientContentSettings,
+    PatientSupportRequest,
+    PatientUserLink,
+)
 from app.modules.feelings.models import FeelingCheckIn
 from app.modules.identity.models import User
 from app.modules.interventions.models import Intervention
@@ -40,6 +46,7 @@ __all__ = [
     "Base",
     "CareTeamAssignment",
     "CaregiverPatientLink",
+    "CompanionPreferences",
     "ConversationMedia",
     "ConversationMessage",
     "ConversationSession",
@@ -52,6 +59,9 @@ __all__ = [
     "Milestone",
     "NotificationOutbox",
     "Patient",
+    "PatientContentSettings",
+    "PatientSupportRequest",
+    "PatientUserLink",
     "ProcessedOperation",
     "RetrievalEvidence",
     "SafetyEvent",

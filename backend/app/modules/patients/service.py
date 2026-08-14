@@ -15,6 +15,15 @@ async def authorized_patient_ids(session: AsyncSession, user: User) -> list[UUID
     asignaciones activas. Esta lista es la base de todo el control de acceso:
     ninguna consulta debe salirse de ella.
     """
+    if user.role == "patient":
+        # Explícito, no por descarte: el menor **nunca** accede al contexto
+        # operativo de su propio caso. Su vista se construye por lista blanca en
+        # `companion.build_companion_view`. Sin esta rama, una cuenta de paciente
+        # caería en la consulta del equipo asistencial y devolvería vacío por
+        # casualidad; el día que cambie ese `else`, la frontera se rompería en
+        # silencio.
+        return []
+
     if user.role == "caregiver":
         rows = await session.scalars(
             select(CaregiverPatientLink.patient_id).where(

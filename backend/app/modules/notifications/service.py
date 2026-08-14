@@ -26,6 +26,10 @@ NOTIFICATION_COPY: dict[str, tuple[str, str]] = {
         "No pudimos confirmar tu asistencia",
         "El equipo revisará el caso para reprogramar.",
     ),
+    "patient_support_request": (
+        "Tu niña o niño pidió compañía",
+        "Escribió desde su espacio con Kinti. Acércate cuando puedas.",
+    ),
 }
 
 

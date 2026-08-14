@@ -19,14 +19,23 @@ if str(BACKEND_ROOT) not in sys.path:
 # engine se construyen en tiempo de importación.
 DEFAULT_ADMIN_URL = "postgresql://kinti:kinti@localhost:5433/postgres"
 TEST_DB_NAME = "kinti_test"
-os.environ.setdefault(
-    "KINTI_DATABASE_URL",
-    f"postgresql+asyncpg://kinti:kinti@localhost:5433/{TEST_DB_NAME}",
+TEST_DATABASE_URL = (
+    f"postgresql+asyncpg://kinti:kinti@localhost:5433/{TEST_DB_NAME}"
 )
-os.environ.setdefault(
-    "KINTI_JWT_SECRET", "secreto-de-pruebas-suficientemente-largo-para-hmac-sha256"
-)
-os.environ.setdefault("KINTI_ENVIRONMENT", "test")
+
+# La configuracion de pruebas debe ser determinista incluso cuando el entorno
+# de desarrollo apunta a Supabase y exige TLS. El PostgreSQL del compose local
+# no ofrece TLS y Alembic tampoco debe heredar la URL remota desde `.env`.
+os.environ["KINTI_DATABASE_URL"] = TEST_DATABASE_URL
+os.environ["KINTI_MIGRATION_DATABASE_URL"] = TEST_DATABASE_URL
+os.environ["KINTI_REQUIRE_TLS"] = "false"
+os.environ["KINTI_STORAGE_PROVIDER"] = "local"
+os.environ["KINTI_AI_PROVIDER"] = "fake"
+os.environ["KINTI_EMBEDDING_PROVIDER"] = "fake"
+os.environ[
+    "KINTI_JWT_SECRET"
+] = "secreto-de-pruebas-suficientemente-largo-para-hmac-sha256"
+os.environ["KINTI_ENVIRONMENT"] = "test"
 
 import asyncio  # noqa: E402
 

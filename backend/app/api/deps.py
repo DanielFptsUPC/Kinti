@@ -61,8 +61,23 @@ async def require_care_team(user: CurrentUser) -> User:
     return user
 
 
+async def require_adult(user: CurrentUser) -> User:
+    """Cierra las superficies adultas al rol `patient`.
+
+    `require_caregiver` y `require_care_team` ya lo excluyen, pero quedan rutas
+    que sólo exigen sesión válida —sincronización y avisos—. Ahí el menor no
+    obtendría datos (su contexto autorizado está vacío), y precisamente por eso
+    conviene un 403 explícito: un vacío silencioso no distingue «no le
+    corresponde» de «todavía no hay nada».
+    """
+    if user.role == "patient":
+        raise forbidden("Esta sección no corresponde al espacio del paciente").as_http()
+    return user
+
+
 CaregiverUser = Annotated[User, Depends(require_caregiver)]
 CareTeamUser = Annotated[User, Depends(require_care_team)]
+AdultUser = Annotated[User, Depends(require_adult)]
 
 
 def http_error(exc: DomainError) -> HTTPException:

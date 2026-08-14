@@ -15,6 +15,7 @@ NOTIFICATION_TYPES = (
     "milestone_rescheduled",
     "alert_resolved",
     "milestone_missed",
+    "patient_support_request",
 )
 
 

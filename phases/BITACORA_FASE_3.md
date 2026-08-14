@@ -2,8 +2,10 @@
 
 Registro de lo realmente ejecutado, con evidencia. Fecha de inicio: **2026-08-13**.
 
-> **Estado: en curso.** Este documento se actualiza paso a paso. Lo que no esté
-> aquí con su comando y su resultado, no está hecho.
+> **Estado: cierre técnico documentado (21 de 23 criterios).** Los dos pendientes
+> dependen de acceso externo: credenciales para un modelo multimodal real y la
+> comprobación final de QR/login en un dispositivo físico. Lo que no esté aquí
+> con su comando y su resultado no se declara ejecutado.
 
 ---
 
@@ -652,26 +654,61 @@ las imágenes y las actualizaciones. Al cerrar la terminal de Metro, el teléfon
 deja de poder obtener la aplicación.
 
 Aunque la API ya no depende de la IPv4 privada del PC, Metro sí necesita una ruta
-desde el teléfono al equipo. Para eliminar la dependencia de misma Wi‑Fi, IP LAN
-y reglas locales se añadió este script:
+desde el teléfono al equipo. Inicialmente se añadió un script de túnel para
+eliminar la dependencia de misma Wi‑Fi, IP LAN y reglas locales:
 
 ```json
 "start:tunnel": "expo start --tunnel --clear"
 ```
 
-Procedimiento reproducible desde la raíz del repositorio:
+Al ejecutarlo, Metro arrancó pero el túnel terminó con este error superficial:
+
+```text
+CommandError: TypeError: Cannot read properties of undefined (reading 'body')
+```
+
+La página oficial de estado de ngrok mostraba todos sus servicios operativos. La
+ejecución aislada del agente incluido por `@expo/ngrok` permitió recuperar el
+error que el wrapper de Expo ocultaba:
+
+```text
+ERR_NGROK_108
+Your account is limited to 5000 simultaneous ngrok agent sessions.
+```
+
+El CLI de Expo SDK 54 usa una credencial compartida para `exp.direct`. Esa cuenta
+había alcanzado 5000 sesiones simultáneas. Al cerrarse el agente sin una respuesta
+HTTP, `@expo/ngrok` intentó leer `error.response.body` aunque `response` era
+`undefined`, por eso la terminal mostró un `TypeError` en lugar del rechazo real.
+No era una caída de Render, Supabase, Metro ni la red local, y repetir o reinstalar
+dependencias no libera una cuota externa.
+
+Como solución inmediata se añadió el modo LAN explícito:
+
+```json
+"start:lan": "expo start --lan --clear"
+```
+
+Procedimiento reproducible desde la raíz del repositorio, con el teléfono y la
+PC conectados a la misma Wi‑Fi:
 
 ```powershell
-npm.cmd run start:tunnel
+npm.cmd run start:lan
 ```
 
 Después se debe:
 
 1. mantener abierta la terminal de Metro;
-2. esperar a que el túnel y el QR estén listos;
+2. esperar a que Metro y el QR estén listos;
 3. escanear el **QR nuevo** desde Expo Go; y
 4. realizar una recarga completa para descartar el bundle anterior, ya que las
    variables `EXPO_PUBLIC_*` están embebidas en él.
+
+El túnel puede reintentarse más adelante con `npm.cmd run start:tunnel` cuando la
+cuota compartida vuelva a estar disponible. No se considera, por ahora, una ruta
+reproducible del proyecto. Si LAN falla, se debe verificar misma Wi‑Fi, desactivar
+temporalmente VPN/datos móviles del teléfono y permitir Node/puerto 8081 en el
+firewall antes de atribuir el fallo al backend.
 
 Con la API remota no se necesita iniciar `docker compose` ni Uvicorn local para
 usar la app. Metro continúa siendo necesario mientras se trabaje con Expo Go. En
@@ -693,7 +730,8 @@ coherente de toda la matriz Expo/React Native.
 | Supabase / TLS / pooler | ✅ verificada |
 | Login y bootstrap remotos | ✅ verificados |
 | URL pública incluida por Expo | ✅ verificada |
-| Comando Metro por túnel | ✅ añadido y configuración validada |
+| Comando Metro por LAN | ✅ añadido como solución inmediata |
+| Túnel ngrok de Expo | ⚠️ bloqueado externamente por `ERR_NGROK_108` (5000 sesiones) |
 | Circuito completo en el teléfono | ⚠️ pendiente confirmar el nuevo QR y login desde Expo Go |
 
 ---
@@ -784,7 +822,8 @@ inicio de sesión. Reescrito sin BOM.
 | `alembic upgrade head` | `c442feb4e762` aplicada con `migration_url` |
 | Render: `/health` y `/health/db` | HTTP 200 |
 | Render: login y bootstrap | HTTP 200 con datos sintéticos |
-| `npm.cmd run start:tunnel` | script añadido; falta validación final desde el teléfono |
+| `npm.cmd run start:lan` | script añadido; falta validación final desde el teléfono |
+| `npm.cmd run start:tunnel` | bloqueado por cuota compartida ngrok: `ERR_NGROK_108` |
 
 **Total: 332 pruebas en verde** (212 backend + 120 móviles).
 
@@ -816,7 +855,7 @@ inicio de sesión. Reescrito sin BOM.
 | Logs y auditoría sin contenido sensible | ✅ |
 | Backup y restauración probados | ✅ `pg_dump` + `pg_restore` verificados |
 | README, OpenAPI, ADR y bitácora | ✅ más `docs/RUNBOOK.md` |
-| Circuito desde dispositivo físico | ⚠️ backend remoto verificado; Metro por túnel preparado; falta confirmar QR y login desde Expo Go |
+| Circuito desde dispositivo físico | ⚠️ backend remoto verificado; Metro por LAN preparado; falta confirmar QR y login desde Expo Go |
 
 **21 de 23 cumplidos.**
 
@@ -825,7 +864,7 @@ Los **2 restantes**:
 | Criterio | Qué falta |
 |---|---|
 | Integración real con modelo multimodal | credenciales GCP con Vertex AI habilitado |
-| Circuito desde dispositivo físico | ejecutar `npm.cmd run start:tunnel`, escanear el QR nuevo y repetir el login desde Expo Go |
+| Circuito desde dispositivo físico | ejecutar `npm.cmd run start:lan`, escanear el QR nuevo y repetir el login desde Expo Go |
 
 El adaptador Vertex está escrito, tipado y compuesto tras su puerto; activarlo es
 cambiar `KINTI_AI_PROVIDER=vertex` y rellenar modelo y región.

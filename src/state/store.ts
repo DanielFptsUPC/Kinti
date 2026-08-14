@@ -12,8 +12,21 @@ import { create } from "zustand";
 
 import { env } from "@/config/env";
 import { migrateFromPhase1 } from "@/application/use-cases/migrateFromPhase1";
-import { friendlyAuthMessage, signIn, signOut } from "@/application/use-cases/session";
-import type { AppNotification, EmotionKey, SessionUser } from "@/domain/entities";
+import {
+  friendlyAuthMessage,
+  friendlyPatientAuthMessage,
+  signIn,
+  signInAsPatient,
+  signOut,
+} from "@/application/use-cases/session";
+import type {
+  AppNotification,
+  CompanionView,
+  EmotionKey,
+  SessionUser,
+  SupportRequestType,
+} from "@/domain/entities";
+import { buildCompanionView } from "@/domain/rules/companion";
 import type {
   CreateMilestoneInput,
   KintiState as DomainState,
@@ -48,12 +61,22 @@ interface StoreState extends DomainState {
 
   sync: SyncStatus;
 
+  /** Espacio del menor. `null` mientras no se haya cargado o no corresponda. */
+  companion: CompanionView | null;
+  /** Última petición de apoyo enviada, para acusar recibo en pantalla. */
+  supportSentType?: SupportRequestType;
+
   hydrate: () => Promise<void>;
   setRole: (role: Role | null) => void;
   setSelectedPatientId: (patientId: string) => void;
 
   signInWithPassword: (email: string, password: string) => Promise<boolean>;
+  signInAsPatientAccount: (alias: string, pin: string) => Promise<boolean>;
   signOutSession: () => Promise<void>;
+
+  loadCompanionSpace: () => Promise<void>;
+  requestSupport: (requestType: SupportRequestType) => Promise<void>;
+  saveCompanionName: (chosenName: string) => Promise<void>;
 
   confirmAttendance: (milestoneId: string) => Promise<void>;
   reportBarrier: (input: ReportBarrierInput) => Promise<void>;
@@ -117,6 +140,7 @@ export const useKintiStore = create<StoreState>()((set, get) => {
     signingIn: false,
 
     sync: { online: true, syncing: false, pending: 0 },
+    companion: null,
 
     hydrate: async () => {
       await migrateFromPhase1();
@@ -131,8 +155,19 @@ export const useKintiStore = create<StoreState>()((set, get) => {
       });
 
       if (env.dataMode === "remote") {
-        const { restoreSession } = await import("@/application/use-cases/session");
+        const { restorePatientSession, restoreSession } = await import(
+          "@/application/use-cases/session"
+        );
         const { database } = await getContainer();
+
+        // El orden importa: si la sesión guardada es infantil, no se intenta la
+        // adulta, que devolvería 403 y cerraría la sesión del niño.
+        const patient = await restorePatientSession();
+        if (patient) {
+          set({ authenticated: true, role: "patient", companion: patient.companion });
+          return;
+        }
+
         if (database) {
           const session = await restoreSession(database);
           if (session) {
@@ -174,6 +209,30 @@ export const useKintiStore = create<StoreState>()((set, get) => {
       }
     },
 
+    signInAsPatientAccount: async (alias, pin) => {
+      const { database } = await getContainer();
+      if (!database) return false;
+
+      set({ signingIn: true, authError: undefined });
+      try {
+        const session = await signInAsPatient(database, alias, pin);
+        // Se fija sólo el espacio Compañero: ni pacientes, ni hitos, ni alertas.
+        set({
+          ...EMPTY_STATE,
+          authenticated: true,
+          role: "patient",
+          user: null,
+          companion: session.companion,
+          selectedPatientId: "",
+          signingIn: false,
+        });
+        return true;
+      } catch (error) {
+        set({ signingIn: false, authError: friendlyPatientAuthMessage(error) });
+        return false;
+      }
+    },
+
     signOutSession: async () => {
       const { database } = await getContainer();
       if (database) await signOut(database);
@@ -183,8 +242,61 @@ export const useKintiStore = create<StoreState>()((set, get) => {
         authenticated: false,
         role: null,
         selectedPatientId: "",
+        companion: null,
+        supportSentType: undefined,
         sync: { online: true, syncing: false, pending: 0 },
       });
+    },
+
+    loadCompanionSpace: async () => {
+      if (env.dataMode === "remote") {
+        const { api } = await import("@/infrastructure/api/client");
+        try {
+          set({ companion: await api.companionView() });
+        } catch {
+          // Sin red se conserva el espacio ya cargado: el niño no ve un error.
+        }
+        return;
+      }
+
+      // Demostración local: la misma lista blanca, calculada en el dispositivo.
+      const { milestones, selectedPatientId, companion } = get();
+      set({
+        companion: buildCompanionView({
+          developmentBand: companion?.developmentBand ?? "middle",
+          chosenName: companion?.chosenName,
+          comfortObject: companion?.comfortObject,
+          milestones: milestones.filter((m) => m.patientId === selectedPatientId),
+        }),
+      });
+    },
+
+    requestSupport: async (requestType) => {
+      set({ supportSentType: requestType });
+      if (env.dataMode !== "remote") return;
+
+      const { api } = await import("@/infrastructure/api/client");
+      const { randomUUID } = await import("expo-crypto");
+      try {
+        await api.requestSupport(requestType, randomUUID());
+      } catch {
+        // El acuse en pantalla no se retira: el niño ya hizo su parte, y el
+        // reintento es responsabilidad de la aplicación, no suya.
+      }
+    },
+
+    saveCompanionName: async (chosenName) => {
+      if (env.dataMode === "remote") {
+        const { api } = await import("@/infrastructure/api/client");
+        try {
+          set({ companion: await api.saveCompanionPreferences({ chosenName }) });
+          return;
+        } catch {
+          // Cae al ajuste local para que el nombre elegido no se pierda.
+        }
+      }
+      const { companion } = get();
+      if (companion) set({ companion: { ...companion, chosenName } });
     },
 
     confirmAttendance: async (milestoneId) => {
@@ -198,6 +310,20 @@ export const useKintiStore = create<StoreState>()((set, get) => {
     },
 
     addFeeling: async (patientId, mood) => {
+      if (get().role === "patient" && env.dataMode === "remote") {
+        // La sesión infantil no conoce su `patientId` y no debe conocerlo: el
+        // servidor lo deriva del token. Tampoco pasa por el outbox, que es la
+        // cola de operaciones adultas.
+        const { api } = await import("@/infrastructure/api/client");
+        const { randomUUID } = await import("expo-crypto");
+        try {
+          await api.recordOwnFeeling(mood, randomUUID());
+        } catch {
+          // Registrar cómo se siente nunca bloquea ni reprocha.
+        }
+        return;
+      }
+
       const { repository } = await getContainer();
       await command(() => repository.recordFeeling(patientId, mood));
     },

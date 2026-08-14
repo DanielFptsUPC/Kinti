@@ -15,7 +15,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.core.time import utcnow
 
 # Vocabulario compartido con `src/types/index.ts` del cliente móvil.
-ROLES = ("caregiver", "care_team")
+ROLES = ("caregiver", "patient", "care_team")
 MILESTONE_STATUSES = (
     "completed",
     "upcoming",

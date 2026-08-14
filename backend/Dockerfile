@@ -34,12 +34,16 @@ COPY alembic.ini ./
 # por esta CA y no por una pública. Sin él, cualquier consulta a la base falla.
 COPY supabase-ca.crt ./
 
+# El arranque aplica las migraciones antes de servir; ver el comentario del
+# script. Se copia con permiso de ejecución explícito porque el modo del archivo
+# en Windows no se conserva al construir.
+COPY docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
+
 USER kinti
 
 # El puerto lo fija la plataforma (Render, Cloud Run y Fly usan $PORT).
 ENV PORT=8000
 EXPOSE 8000
 
-# `--proxy-headers` es necesario detrás del balanceador de la plataforma: sin
-# ello, las URLs que genere FastAPI usarían el host interno del contenedor.
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT} --proxy-headers --forwarded-allow-ips='*'"]
+CMD ["./docker-entrypoint.sh"]

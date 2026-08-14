@@ -4,6 +4,7 @@ from app.api.v1 import (
     assistant,
     auth,
     care_team,
+    companion,
     family,
     knowledge,
     notifications,
@@ -17,6 +18,7 @@ api_router.include_router(family.router)
 api_router.include_router(care_team.router)
 api_router.include_router(operations.router)
 api_router.include_router(notifications.router)
+api_router.include_router(companion.router)
 api_router.include_router(assistant.router)
 api_router.include_router(knowledge.router)
 api_router.include_router(sync.router)

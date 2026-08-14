@@ -10,7 +10,7 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 
-from app.api.deps import CurrentUser, SessionDep
+from app.api.deps import AdultUser, SessionDep
 from app.api.v1 import schemas
 from app.core.time import utcnow
 from app.modules.notifications import service as notifications_service
@@ -35,7 +35,7 @@ def _to_schema(item: NotificationOutbox) -> schemas.NotificationOut:
 
 @router.get("/notifications", response_model=list[schemas.NotificationOut])
 async def list_notifications(
-    user: CurrentUser, session: SessionDep
+    user: AdultUser, session: SessionDep
 ) -> list[schemas.NotificationOut]:
     items = await notifications_service.list_for_user(session, user.id)
     return [_to_schema(item) for item in items]
@@ -43,7 +43,7 @@ async def list_notifications(
 
 @router.post("/notifications/{notification_id}/read", response_model=schemas.NotificationOut)
 async def mark_read(
-    notification_id: UUID, user: CurrentUser, session: SessionDep
+    notification_id: UUID, user: AdultUser, session: SessionDep
 ) -> schemas.NotificationOut:
     item = await session.scalar(
         select(NotificationOutbox).where(
