@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Kinti — piloto conectado de continuidad hematológica
 
 **Kinti es el compañero digital de la ruta hematológica pediátrica.** Muestra a
@@ -509,6 +508,3 @@ seguridad antes de trabajar con información real.
   reemplazable en `src/components/KintiMascot.tsx`).
 - **Evaluación institucional de privacidad y seguridad previa a cualquier dato
   real.** Ver las puertas institucionales en [`docs/RUNBOOK.md`](docs/RUNBOOK.md) §8.
-=======
-# Kinti
->>>>>>> origin/main
