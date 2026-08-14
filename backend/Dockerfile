@@ -29,6 +29,11 @@ COPY app ./app
 COPY alembic ./alembic
 COPY alembic.ini ./
 
+# CA raíz de Supabase. Es un certificado público, no un secreto, y hace falta
+# para verificar TLS: tanto la conexión directa como el pooler están firmados
+# por esta CA y no por una pública. Sin él, cualquier consulta a la base falla.
+COPY supabase-ca.crt ./
+
 USER kinti
 
 # El puerto lo fija la plataforma (Render, Cloud Run y Fly usan $PORT).

@@ -28,11 +28,17 @@ services:
       - key: KINTI_MIGRATION_DATABASE_URL
         sync: false
 
-      # El pooler usa un certificado de CA pública: no hace falta CA propia.
+      # El pooler NO usa una CA pública: está firmado por la misma CA propia de
+      # Supabase que la conexión directa. Sin el certificado, la verificación
+      # falla con «self-signed certificate in certificate chain» y todo endpoint
+      # que toque la base devuelve 500.
+      #
+      # `supabase-ca.crt` es un certificado raíz público (Supabase lo publica en
+      # su dashboard), así que se versiona en el repositorio sin problema.
       - key: KINTI_REQUIRE_TLS
         value: "true"
       - key: KINTI_DB_SSL_ROOT_CERT
-        value: ""
+        value: "supabase-ca.crt"
 
       # El plan gratuito de Supabase limita conexiones; el pooler las multiplexa,
       # pero conviene no abrir más de las necesarias.

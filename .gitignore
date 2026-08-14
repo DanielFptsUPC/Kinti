@@ -47,6 +47,9 @@ backend/.env
 backend/*.crt
 backend/*.json
 !backend/tests/**/*.json
+# La CA raíz de Supabase es un certificado PÚBLICO, no un secreto: se publica en
+# su dashboard. Debe versionarse para que el despliegue pueda verificar TLS.
+!backend/supabase-ca.crt
 **/__pycache__/
 *.py[cod]
 .pytest_cache/
