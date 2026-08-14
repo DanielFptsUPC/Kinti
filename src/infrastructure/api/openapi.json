@@ -3642,6 +3642,30 @@
           "infraestructura"
         ]
       }
+    },
+    "/health/db": {
+      "get": {
+        "description": "Diagn�stico de la conexi�n a la base.\n\nExiste porque un 500 opaco en un despliegue remoto es imposible de resolver\nsin acceso a los logs: este endpoint convierte el fallo en un diagn�stico\naccionable.\n\nNunca devuelve la contrase�a, el usuario ni la cadena completa. S�lo el host,\nel tipo de error y una pista de qu� revisar.",
+        "operationId": "health_db_health_db_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Health Db Health Db Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health Db",
+        "tags": [
+          "infraestructura"
+        ]
+      }
     }
   }
 }
