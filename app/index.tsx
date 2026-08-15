@@ -19,13 +19,9 @@ const ROLE_OPTIONS: { role: Role; label: string; description: string; icon: Icon
     icon: "people",
     path: "/caregiver",
   },
-  {
-    role: "child",
-    label: "Niño",
-    description: "Descubre tu próxima estación junto a Kinti.",
-    icon: "planet",
-    path: "/child",
-  },
+  // El rol "child" (demostración local de "Mi espacio con Kinti") queda oculto
+  // de este selector por ahora. La pantalla y su ruta siguen existiendo; sólo
+  // no hay tarjeta que lleve ahí.
   {
     role: "care_team",
     label: "Equipo asistencial",

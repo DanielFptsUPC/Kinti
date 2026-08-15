@@ -104,13 +104,10 @@ export default function LoginScreen() {
             loading={signingIn}
           />
 
-          <Button
-            label="Soy el paciente"
-            variant="ghost"
-            icon="happy"
-            onPress={() => router.replace("/patient-login")}
-            accessibilityHint="Entra al espacio del paciente con alias y clave"
-          />
+          {/* El acceso infantil ("Soy el paciente" → /patient-login) queda
+              oculto de la navegación por ahora. La pantalla y el flujo del
+              servidor siguen intactos; sólo no hay forma de llegar aquí desde
+              el login. */}
 
           {env.isDev ? (
             <View style={styles.devSection}>
