@@ -17,11 +17,21 @@ services:
     runtime: docker
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
-    # Kinti Voz recibe webhooks telefónicos en este mismo proceso. El plan
-    # Starter evita la suspensión por inactividad y el arranque en frío del
-    # plan Free; no separar el módulo de voz durante el MVP evita otro salto de
-    # red y conserva una sola transacción para sesión, solicitud y callback.
-    plan: starter
+    # Kinti Voz recibe webhooks telefónicos en este mismo proceso. No separar el
+    # módulo de voz durante el MVP evita otro salto de red y conserva una sola
+    # transacción para sesión, solicitud y callback.
+    #
+    # `free` es una decisión consciente para el MVP: alcanza para el simulador,
+    # la aplicación y las vistas adultas, que es lo que se demuestra hoy.
+    #
+    # **No alcanza para una llamada telefónica real.** El plan Free suspende el
+    # servicio por inactividad y el arranque en frío tarda decenas de segundos,
+    # mientras que un webhook de Twilio expira en unos quince: la primera
+    # llamada después de un rato de silencio fallaría, y fallaría justo en la
+    # demostración. Pasar a `starter` es requisito de la telefonía real, no una
+    # mejora opcional — igual que la puerta de `config.py`, que bloquea Twilio
+    # hasta que el workflow sea durable.
+    plan: free
     region: oregon
     healthCheckPath: /health
 

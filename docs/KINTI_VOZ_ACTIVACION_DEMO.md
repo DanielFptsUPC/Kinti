@@ -17,9 +17,14 @@ Teléfono del cuidador → número Twilio → HTTPS → kinti-api always-on
 ## Decisión de infraestructura
 
 Los endpoints telefónicos son parte del mismo FastAPI que el resto del backend.
-Durante el MVP no se crea un segundo microservicio: `kinti-api` completo pasa de
-Render Free a Render Starter mediante `plan: starter` en `render.yaml`. Esto
-elimina la suspensión por inactividad y evita un salto de red adicional.
+Durante el MVP no se crea un segundo microservicio: eso evita un salto de red y
+conserva una sola transacción para sesión, solicitud y callback.
+
+**El repositorio está hoy en `plan: free`**, por decisión explícita: alcanza
+para el simulador, la aplicación y las vistas adultas, que es lo que se
+demuestra en el MVP. Para una llamada telefónica real hay que cambiarlo a
+`starter` —ver el Paso 1—, porque Free suspende el servicio por inactividad y su
+arranque en frío excede el tiempo que Twilio espera por un webhook.
 
 ## Lo que debe preparar una persona del equipo
 
@@ -35,7 +40,9 @@ Render por chat, captura, repositorio o aplicación móvil.
 
 ## Paso 1 — activar Render Starter
 
-1. Hacer commit y push del `render.yaml` después de que la Fase 5 esté verde.
+1. Cambiar `plan: free` a `plan: starter` en `render.yaml`, y hacer commit y
+   push después de que la Fase 5 esté verde. Mientras el archivo diga `free`,
+   este paso no ocurre y la telefonía real sigue fuera de alcance.
 2. En Render, abrir `kinti-api` y confirmar que el Blueprint propone el cambio
    de `free` a `starter`.
 3. Revisar el precio que muestra el dashboard y aprobar la facturación.

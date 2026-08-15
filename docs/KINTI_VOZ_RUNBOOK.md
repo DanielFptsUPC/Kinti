@@ -11,7 +11,7 @@ Estado al 2026-08-14:
 - 5B, streaming, permanece deshabilitado hasta cumplir todos los gates de 5A.
 - **Fase 5 no fue desplegada y su migración no fue aplicada a una base remota.** Cualquier observación previa de Render/Supabase pertenece a la línea base, no al vertical de voz.
 - **Twilio está bloqueado fail-closed en la configuración actual**, aun si se cargan credenciales. No se activó una cuenta, no se registró un número y no se realizó una llamada real.
-- El `render.yaml` describe un objetivo futuro always-on; su `plan: starter` no demuestra que exista un upgrade o despliegue.
+- El `render.yaml` declara `plan: free` por decisión del equipo para el MVP. Free se suspende por inactividad, así que mientras siga así el servicio **no puede** atender una llamada real: el gate always-on está abierto a propósito, no por olvido.
 - Las pruebas usan únicamente identidades y casos sintéticos. No se prueban pacientes reales por teléfono.
 
 La decisión completa está en [ADR 0004](./adr/0004-kinti-voz-accesible.md).
@@ -230,11 +230,11 @@ sólo con variables de entorno.
 
 Render indica que un servicio free se suspende después de 15 minutos sin tráfico entrante y tarda cerca de un minuto en volver a iniciar. El webhook inicial y los turnos deben responder dentro de una ventana telefónica mucho menor. Por ello no se usa `twilio` ni se registra el número mientras el servicio continúe en free.
 
-Al cierre de 5A **no se realizó un despliegue, no se cambió el plan de Render y
-no se aplicó la migración en una base remota**. `render.yaml` declara
-`plan: starter` como configuración candidata para una operación futura, no como
-fuente de evidencia sobre el estado del dashboard. Un ping periódico no es una
-solución de disponibilidad.
+Al cierre de 5A **no se cambió el plan de Render**. `render.yaml` declara
+`plan: free` por decisión explícita del equipo: el MVP se demuestra con el
+simulador y la aplicación, que no dependen de disponibilidad continua. Pasar a
+`starter` es un prerrequisito de la telefonía real, y hasta que ocurra este gate
+permanece abierto. Un ping periódico no es una solución de disponibilidad.
 
 El gate de infraestructura sólo podrá cerrarse cuando el dashboard muestre un
 servicio always-on, el despliegue y la migración terminen correctamente y una
