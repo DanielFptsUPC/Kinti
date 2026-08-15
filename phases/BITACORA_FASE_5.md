@@ -218,7 +218,7 @@ Fase 5 regenerará el contrato en UTF-8 y añadirá una verificación de frescur
 | OpenAPI final: esquemas | **78** |
 | Alembic head/current final local | **`f5a1c0de0001 (head)`** |
 | Export Android/web final | **ambos compilan** (`.hbc` 3,52 MB; web 5 bundles) |
-| Despliegue Fase 5 y base remota | **NO EJECUTADOS** |
+| Despliegue Fase 5 y base remota | **ejecutados y verificados**: 58 rutas, migración aplicada por el arranque, datos de voz sembrados |
 | Llamada Twilio real | **BLOQUEADA / NO EJECUTADA** |
 
 Todos los marcadores `PENDIENTE_*` se sustituyeron con la salida real del
@@ -255,6 +255,46 @@ ensanchaba a `string`. Se anotó con `satisfies VoiceCallbackRequest[]`.
 | Seed sintético idempotente | segunda ejecución sobre base ya sembrada: ocho tablas sin variación de conteo |
 | Rol `patient` sin acceso al circuito | `test_patient_role_is_rejected_from_every_adult_voice_surface` |
 | Pruebas, lint, typecheck y OpenAPI | ver la tabla anterior |
+
+### Despliegue de 5A
+
+El contenedor aplicó su propia migración al arrancar (`8a5c70ba54d1` →
+`f5a1c0de0001`, ocho tablas nuevas, ninguna operación destructiva). El
+mecanismo introducido en la Fase 4 evitó de nuevo el desfase entre código y
+esquema, esta vez sin intervención manual.
+
+Antes de publicar se reprodujo el entorno de Render con el código nuevo y se
+comprobó que **no arrancaba**: `KINTI_TELEPHONY_WEBHOOK_SECRET` no existía y la
+configuración se niega a servir fuera de `local` con el secreto por defecto. Se
+cargó el secreto en el panel antes del push, así que no hubo despliegue fallido.
+La guarda hizo exactamente lo que debía: convertir una omisión silenciosa en un
+arranque bloqueado.
+
+Los datos sintéticos de voz se sembraron aparte, porque la migración crea las
+tablas vacías: sin `service_hours`, `referral_cases` ni `appointment_slots` el
+circuito responde pero no tiene nada que ofrecer.
+
+| Comprobación contra el despliegue | Resultado |
+| --- | --- |
+| `/health/db` | `ok`, vía Session Pooler |
+| Rutas publicadas | 58 |
+| `alembic current` remoto | `f5a1c0de0001 (head)` |
+| Horarios de atención | 5 filas |
+| Búsqueda de referencia (`SYN-REF-004`) | `approved`, Hospital Carlos Monge Medrano |
+| Solicitud de cita de origen `voice` | visible para la familia |
+| Token `patient` contra horarios, solicitudes y callbacks | **403** en las tres |
+| `POST /voice/incoming` sin firma | **403** |
+
+La frontera infantil y la firma de webhook se comprobaron sobre el servicio
+real, no sólo en la suite.
+
+### Plan de Render
+
+El equipo decidió permanecer en `plan: free` para alcanzar el MVP sin costo.
+Es suficiente para el simulador, la aplicación y las vistas adultas. **No lo es
+para telefonía real**: Free suspende el servicio por inactividad y su arranque
+en frío excede la ventana en que Twilio espera un webhook, así que el gate
+always-on queda abierto por decisión explícita y no por olvido.
 
 ### Gates obligatorios antes de telefonía real
 
