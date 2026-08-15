@@ -30,6 +30,10 @@ export default function CareTeamLayout() {
         name="operations"
         options={{ title: "Coordinar", tabBarIcon: tabIcon("git-compare") }}
       />
+      <Tabs.Screen
+        name="knowledge"
+        options={{ title: "Conocimiento", tabBarIcon: tabIcon("library") }}
+      />
     </Tabs>
   );
 }

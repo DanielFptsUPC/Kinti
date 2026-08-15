@@ -17,6 +17,9 @@ import type {
   AppNotification,
   BarrierAlert,
   FeelingCheckIn,
+  KnowledgeDocument,
+  KnowledgeVersion,
+  KnowledgeVersionPreview,
   Milestone,
   OperationType,
   Patient,
@@ -125,6 +128,41 @@ describe("paridad de entidades", () => {
       role: true,
     });
     expect(schemaProperties("UserProfile")).toEqual(keys);
+  });
+
+  it("KnowledgeDocument coincide con DocumentOut", () => {
+    const keys = typeKeys<KnowledgeDocument>({
+      id: true,
+      slug: true,
+      title: true,
+      category: true,
+      audience: true,
+      language: true,
+      isActive: true,
+    });
+    expect(schemaProperties("DocumentOut")).toEqual(keys);
+  });
+
+  it("KnowledgeVersion coincide con VersionOut", () => {
+    const keys = typeKeys<KnowledgeVersion>({
+      id: true,
+      documentId: true,
+      version: true,
+      status: true,
+      checksum: true,
+      publishedAt: true,
+      retiredAt: true,
+    });
+    expect(schemaProperties("VersionOut")).toEqual(keys);
+  });
+
+  it("KnowledgeVersionPreview coincide con VersionPreviewOut", () => {
+    const keys = typeKeys<KnowledgeVersionPreview>({
+      version: true,
+      chunkCount: true,
+      sections: true,
+    });
+    expect(schemaProperties("VersionPreviewOut")).toEqual(keys);
   });
 });
 

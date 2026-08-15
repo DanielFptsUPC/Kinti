@@ -14,6 +14,10 @@ import type {
   CompanionView,
   DevelopmentBand,
   FeelingCheckIn,
+  KnowledgeAudience,
+  KnowledgeDocument,
+  KnowledgeVersion,
+  KnowledgeVersionPreview,
   OperationsDashboard,
   PatientAccount,
   Snapshot,
@@ -265,6 +269,56 @@ export const api = {
       request<OperationsDashboard["socialWork"]>("/operations/social-work"),
     ]);
     return { workload, capacity, socialWork };
+  },
+
+  // ---------------------------------------------- conocimiento institucional
+
+  /** Sólo el rol `care_team` gestiona el corpus; el servidor lo exige igual. */
+  async knowledgeDocuments(): Promise<KnowledgeDocument[]> {
+    return request<KnowledgeDocument[]>("/knowledge/documents");
+  },
+
+  async createKnowledgeDocument(body: {
+    slug: string;
+    title: string;
+    category: string;
+    audience?: KnowledgeAudience;
+    language?: string;
+  }): Promise<KnowledgeDocument> {
+    return request<KnowledgeDocument>("/knowledge/documents", { method: "POST", body });
+  },
+
+  /**
+   * Registra una versión nueva. **No la publica**: `content` vive en `draft`
+   * hasta pasar por `processKnowledgeVersion` y una revisión explícita en
+   * `publishKnowledgeVersion`. Guardar un archivo no es lo mismo que publicarlo.
+   */
+  async createKnowledgeVersion(
+    documentId: string,
+    body: { version: string; content: string; mimeType?: string },
+  ): Promise<KnowledgeVersion> {
+    return request<KnowledgeVersion>(`/knowledge/documents/${documentId}/versions`, {
+      method: "POST",
+      body,
+    });
+  },
+
+  /** Extrae, fragmenta y embebe. Deja la versión en `review_required`. */
+  async processKnowledgeVersion(versionId: string): Promise<KnowledgeVersion> {
+    return request<KnowledgeVersion>(`/knowledge/versions/${versionId}/process`, {
+      method: "POST",
+    });
+  },
+
+  async previewKnowledgeVersion(versionId: string): Promise<KnowledgeVersionPreview> {
+    return request<KnowledgeVersionPreview>(`/knowledge/versions/${versionId}/preview`);
+  },
+
+  /** Acto deliberado con responsable: retira la versión anterior, no la borra. */
+  async publishKnowledgeVersion(versionId: string): Promise<KnowledgeVersion> {
+    return request<KnowledgeVersion>(`/knowledge/versions/${versionId}/publish`, {
+      method: "POST",
+    });
   },
 
   // ----------------------------------------------------------- Kinti Voz

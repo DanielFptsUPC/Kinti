@@ -280,3 +280,45 @@ export interface OperationsDashboard {
   capacity: CapacityResponse;
   socialWork: SocialWorkQueueResponse;
 }
+
+// -------------------------------------------------- conocimiento institucional
+
+/**
+ * Ciclo de vida de una versión (`app/modules/knowledge/models.py::VERSION_STATUSES`).
+ * Sólo `published` es recuperable por el chat de cuidadores.
+ */
+export type KnowledgeVersionStatus =
+  | "draft"
+  | "processing"
+  | "review_required"
+  | "published"
+  | "retired"
+  | "failed";
+
+export type KnowledgeAudience = "caregiver" | "care_team" | "child" | "public";
+
+export interface KnowledgeDocument {
+  id: string;
+  slug: string;
+  title: string;
+  category: string;
+  audience: KnowledgeAudience;
+  language: string;
+  isActive: boolean;
+}
+
+export interface KnowledgeVersion {
+  id: string;
+  documentId: string;
+  version: string;
+  status: KnowledgeVersionStatus;
+  checksum: string;
+  publishedAt?: string | null;
+  retiredAt?: string | null;
+}
+
+export interface KnowledgeVersionPreview {
+  version: KnowledgeVersion;
+  chunkCount: number;
+  sections: string[];
+}
