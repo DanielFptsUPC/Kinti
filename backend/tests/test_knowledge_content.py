@@ -123,6 +123,43 @@ async def test_seeding_twice_does_not_duplicate_or_fail(session, seeded):
     reset_for_testing()
 
 
+async def test_reindex_re_embeds_published_content_without_changing_the_checksum(
+    session, seeded
+):
+    """El motivo de existir de `--reindex`: cambiar de proveedor de embeddings
+    no cambia el texto del documento, así que la deduplicación por checksum por
+    sí sola dejaría los vectores viejos para siempre. `force=True` lo evita.
+    """
+    reset_for_testing()
+    await seed_knowledge(session)
+
+    before = await session.scalars(
+        select(KnowledgeDocumentVersion).where(KnowledgeDocumentVersion.status == "published")
+    )
+    before_ids = {v.id for v in before}
+    before_chunks = await session.scalars(select(KnowledgeChunk.id))
+    before_chunk_ids = set(before_chunks)
+
+    results = await seed_knowledge(session, force=True)
+
+    assert all(outcome == "reindexado" for _, outcome in results)
+
+    after = await session.scalars(
+        select(KnowledgeDocumentVersion).where(KnowledgeDocumentVersion.status == "published")
+    )
+    after_rows = list(after)
+    # Misma versión, no una nueva: `--reindex` reincrusta en el sitio.
+    assert {v.id for v in after_rows} == before_ids
+    assert len(after_rows) == len(DOCUMENTS)
+
+    after_chunk_ids = set(await session.scalars(select(KnowledgeChunk.id)))
+    # `process_version` reemplaza los fragmentos: los IDs de los chunks
+    # cambian aunque el contenido embebido sea el mismo texto.
+    assert after_chunk_ids != before_chunk_ids
+    assert len(after_chunk_ids) == len(before_chunk_ids)
+    reset_for_testing()
+
+
 async def test_seeding_requires_the_care_team_account_first(session):
     """Sin `python -m app.seed` antes, no hay quién firme la publicación."""
     import pytest

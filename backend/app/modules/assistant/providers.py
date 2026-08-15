@@ -40,13 +40,14 @@ def build_model() -> MultimodalModel:
     if settings.ai_provider == "vertex":
         from app.modules.assistant.vertex import VertexGeminiModel
 
-        if not settings.ai_model_id or not settings.ai_region:
+        if not settings.ai_model_id or not settings.ai_region or not settings.ai_project:
             raise UnavailableProvider(
-                "Vertex requiere KINTI_AI_MODEL_ID y KINTI_AI_REGION explícitos. "
-                "No se admite el alias 'latest': un modelo que cambia bajo los "
-                "pies invalida toda evaluación previa."
+                "Vertex requiere KINTI_AI_PROJECT, KINTI_AI_MODEL_ID y KINTI_AI_REGION "
+                "explícitos. No se admite el alias 'latest': un modelo que cambia bajo "
+                "los pies invalida toda evaluación previa."
             )
         return VertexGeminiModel(
+            project=settings.ai_project,
             model_id=settings.ai_model_id,
             region=settings.ai_region,
             timeout_seconds=settings.ai_timeout_seconds,
@@ -65,9 +66,13 @@ def build_embeddings() -> EmbeddingProvider:
     if settings.embedding_provider == "vertex":
         from app.modules.assistant.vertex import VertexEmbeddingProvider
 
-        if not settings.embedding_model_id:
-            raise UnavailableProvider("Vertex requiere KINTI_EMBEDDING_MODEL_ID explícito")
+        if not settings.embedding_model_id or not settings.ai_project or not settings.ai_region:
+            raise UnavailableProvider(
+                "Vertex requiere KINTI_AI_PROJECT, KINTI_AI_REGION y "
+                "KINTI_EMBEDDING_MODEL_ID explícitos."
+            )
         return VertexEmbeddingProvider(
+            project=settings.ai_project,
             model_id=settings.embedding_model_id,
             region=settings.ai_region,
             dimension=settings.embedding_dimension,

@@ -137,6 +137,7 @@ class VertexGeminiModel:
     def __init__(
         self,
         *,
+        project: str,
         model_id: str,
         region: str,
         timeout_seconds: int = 30,
@@ -146,6 +147,7 @@ class VertexGeminiModel:
             raise ValueError(
                 "No se admite el alias 'latest': registra un identificador GA explícito"
             )
+        self._project = project
         self._model_id = model_id
         self._region = region
         self._timeout = timeout_seconds
@@ -164,7 +166,10 @@ class VertexGeminiModel:
             raise RuntimeError(
                 "Falta el SDK de Vertex AI. Instala `google-genai` para usar este proveedor."
             ) from exc
-        return genai.Client(vertexai=True, location=self._region)
+        # `project` explícito, no inferido de `GOOGLE_CLOUD_PROJECT`: mismo
+        # principio que el rechazo del alias `latest` — un valor implícito que
+        # cambia con el entorno invalida cualquier evaluación previa.
+        return genai.Client(vertexai=True, project=self._project, location=self._region)
 
     def _build_contents(self, request: ModelRequest) -> list[dict]:
         """Contexto mínimo. Sin nombre, DNI, correo ni identificadores internos."""
@@ -268,6 +273,13 @@ class VertexGeminiModel:
         try:
             payload = json.loads(response.text)
         except (AttributeError, ValueError, TypeError):
+            payload = None
+
+        if not isinstance(payload, dict):
+            # JSON sintácticamente válido pero no un objeto —un array, un
+            # número, `null`— pasaba el `try` y reventaba en el primer
+            # `payload.get(...)` en vez de abstenerse, que es la conducta que
+            # el módulo promete.
             return ModelResponse(
                 intent="unknown",
                 answer="",
@@ -282,6 +294,8 @@ class VertexGeminiModel:
         valid_ids = {str(c.chunk_id): c for c in request.chunks}
         citations = []
         for raw in payload.get("citations") or []:
+            if not isinstance(raw, dict):
+                continue
             chunk = valid_ids.get(str(raw.get("chunkId")))
             if chunk is None:
                 continue
@@ -351,7 +365,10 @@ class VertexEmbeddingProvider:
     **No verificado**: mismo estado que el modelo.
     """
 
-    def __init__(self, *, model_id: str, region: str, dimension: int = 768) -> None:
+    def __init__(
+        self, *, project: str, model_id: str, region: str, dimension: int = 768
+    ) -> None:
+        self._project = project
         self._model_id = model_id
         self._region = region
         self._dimension = dimension
@@ -364,13 +381,19 @@ class VertexEmbeddingProvider:
     def dimension(self) -> int:
         return self._dimension
 
-    async def embed(self, texts: list[str]) -> list[list[float]]:
+    def _client(self):
+        # Mismo patrón que `VertexGeminiModel._client`: import perezoso porque
+        # el SDK no debe hacer falta para correr con el proveedor fake, y un
+        # método separado —en vez de construirlo inline en `embed`— porque así
+        # una prueba puede sustituirlo sin reproducir la carga del módulo real.
         try:
             from google import genai
-        except ImportError as exc:  # pragma: no cover
+        except ImportError as exc:  # pragma: no cover - depende del entorno
             raise RuntimeError("Falta el SDK `google-genai`") from exc
+        return genai.Client(vertexai=True, project=self._project, location=self._region)
 
-        client = genai.Client(vertexai=True, location=self._region)
+    async def embed(self, texts: list[str]) -> list[list[float]]:
+        client = self._client()
         result = await client.aio.models.embed_content(
             model=self._model_id,
             contents=texts,

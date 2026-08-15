@@ -22,6 +22,11 @@ dependencies = [
     "httpx>=0.27",
     # Validador oficial de firmas y contratos de Programmable Voice.
     "twilio>=9.0,<10",
+    # SDK de Vertex AI. `providers.py` lo importa perezosamente: con
+    # KINTI_AI_PROVIDER=fake (el valor por defecto) nunca se ejecuta, pero debe
+    # estar instalado para que activar el proveedor real no requiera reconstruir
+    # la imagen.
+    "google-genai>=1.0",
 ]
 
 [project.optional-dependencies]

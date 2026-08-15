@@ -79,7 +79,9 @@ services:
 
       # --- IA -----------------------------------------------------------------
       # `fake` por defecto: activar un proveedor real es una decisión consciente,
-      # no algo que ocurra por omisión al desplegar.
+      # no algo que ocurra por omisión al desplegar. Cambiar a `vertex` exige
+      # además las cinco variables de abajo — `providers.py` se niega a
+      # construir el proveedor si falta alguna.
       - key: KINTI_AI_PROVIDER
         value: fake
       - key: KINTI_EMBEDDING_PROVIDER
@@ -88,6 +90,21 @@ services:
         value: "768"
       - key: KINTI_RAG_TOP_K
         value: "5"
+
+      # Vacías hasta activar Vertex AI. Ver docs/VERTEX_AI_ACTIVACION.md.
+      - key: KINTI_AI_PROJECT
+        sync: false
+      - key: KINTI_AI_MODEL_ID
+        sync: false
+      - key: KINTI_AI_REGION
+        sync: false
+      - key: KINTI_EMBEDDING_MODEL_ID
+        sync: false
+      # JSON completo de la service account, pegado tal cual. `docker-entrypoint.sh`
+      # lo escribe a un archivo temporal y apunta `GOOGLE_APPLICATION_CREDENTIALS`
+      # ahí antes de arrancar — Render no monta secretos como archivo.
+      - key: GOOGLE_APPLICATION_CREDENTIALS_JSON
+        sync: false
 
       # --- Kinti Voz (Fase 5A) ----------------------------------------------
       # El despliegue conserva fakes hasta autorizar número, presupuesto,

@@ -47,6 +47,11 @@ class Settings(BaseSettings):
     ai_provider: str = "fake"
     ai_model_id: str = ""
     ai_region: str = ""
+    #: Proyecto de GCP que factura las llamadas a Vertex AI. El SDK `google-genai`
+    #: puede inferirlo de `GOOGLE_CLOUD_PROJECT`, pero eso dejaría el proveedor
+    #: apuntando a "el proyecto que sea que esté en el entorno" — el mismo motivo
+    #: por el que `ai_model_id` no admite el alias `latest`: explícito o no arranca.
+    ai_project: str = ""
     ai_timeout_seconds: int = 30
     ai_max_output_tokens: int = 1024
 

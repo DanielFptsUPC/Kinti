@@ -235,7 +235,9 @@ def test_vertex_voice_schema_and_parser_keep_the_same_closed_lists():
     assert set(tool_values) == {tool.value for tool in SuggestedVoiceTool}
     assert VOICE_INTENT_RESPONSE_SCHEMA["additionalProperties"] is False
 
-    provider = VertexGeminiModel(model_id="gemini-2.5-flash-001", region="us-central1")
+    provider = VertexGeminiModel(
+        project="kinti-demo", model_id="gemini-2.5-flash-001", region="us-central1"
+    )
     raw = SimpleNamespace(
         text=json.dumps(
             {
@@ -260,7 +262,7 @@ def test_vertex_voice_schema_and_parser_keep_the_same_closed_lists():
 
 
 async def test_vertex_parser_does_not_launder_an_extra_state_field():
-    provider = VertexGeminiModel(model_id="gemini-test", region="us-central1")
+    provider = VertexGeminiModel(project="kinti-demo", model_id="gemini-test", region="us-central1")
     raw = SimpleNamespace(
         text=json.dumps(
             {

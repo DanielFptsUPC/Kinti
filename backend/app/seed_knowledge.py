@@ -12,11 +12,23 @@ cambiaron; el resto se salta sin tocar sus embeddings.
 
     python -m app.seed_knowledge
 
+Esa deduplicación por checksum tiene una consecuencia que hay que conocer al
+**cambiar de proveedor de embeddings** (por ejemplo, de `fake` a `vertex`): el
+texto de un documento no cambia sólo porque cambie quién lo embebe, así que una
+corrida normal encontraría el mismo checksum y saltaría el reprocesamiento —
+los chunks existentes se quedarían para siempre con vectores del proveedor
+anterior, mezclados en la misma columna con los nuevos. `--reindex` fuerza el
+reprocesamiento de todo el corpus con el proveedor configurado, sin importar el
+checksum:
+
+    python -m app.seed_knowledge --reindex
+
 Requiere que ya exista la cuenta de equipo asistencial (`python -m app.seed`
 corrido antes): la firma como autora y revisora de cada versión.
 """
 
 import asyncio
+import sys
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -58,13 +70,15 @@ async def seed_one(
     actor: User,
     embeddings: EmbeddingProvider,
     storage: MediaStorage,
+    force: bool = False,
 ) -> tuple[KnowledgeDocumentVersion, str]:
     """Publica una versión y describe lo que hizo, para el resumen en consola.
 
-    Devuelve la versión resultante y una de tres palabras: `publicado`
+    Devuelve la versión resultante y una de cuatro palabras: `publicado`
     (procesada y publicada en esta corrida), `vigente` (ya estaba publicada con
-    este mismo contenido, nada que hacer) o `omitido` (el documento no produjo
-    fragmentos utilizables — ver `ingestion.process_version`).
+    este mismo contenido, nada que hacer), `reindexado` (`force=True`: se
+    volvió a embeber contenido que ya estaba publicado) u `omitido` (el
+    documento no produjo fragmentos utilizables — ver `ingestion.process_version`).
     """
     document = await _get_or_create_document(session, spec)
 
@@ -78,7 +92,16 @@ async def seed_one(
     )
 
     if version.status == "published":
-        return version, "vigente"
+        if not force:
+            return version, "vigente"
+        # `process_version` reemplaza los fragmentos de esta versión en vez de
+        # acumularlos, así que reincrustarla en el sitio es seguro: no crea una
+        # versión nueva ni retira nada.
+        await ingestion.process_version(
+            session, version=version, text=spec.text, embeddings=embeddings
+        )
+        await ingestion.publish_version(session, actor=actor, version=version)
+        return version, "reindexado"
 
     # Cualquier otro estado —`draft` en el caso normal, o `processing`/`failed`
     # si una corrida anterior no llegó a terminar— se reprocesa: reprocesar
@@ -99,7 +122,7 @@ async def seed_one(
     return version, "omitido"
 
 
-async def seed_knowledge(session: AsyncSession) -> list[tuple[str, str]]:
+async def seed_knowledge(session: AsyncSession, *, force: bool = False) -> list[tuple[str, str]]:
     """Publica `DOCUMENTS` completo. Devuelve `(título, resultado)` por documento."""
     actor = await identity.get_by_email(session, CARE_TEAM_EMAIL)
     if actor is None:
@@ -113,7 +136,7 @@ async def seed_knowledge(session: AsyncSession) -> list[tuple[str, str]]:
     results = []
     for spec in DOCUMENTS:
         version, outcome = await seed_one(
-            session, spec, actor=actor, embeddings=embeddings, storage=storage
+            session, spec, actor=actor, embeddings=embeddings, storage=storage, force=force
         )
         results.append((spec.title, outcome))
     await session.commit()
@@ -121,8 +144,9 @@ async def seed_knowledge(session: AsyncSession) -> list[tuple[str, str]]:
 
 
 async def main() -> None:
+    force = "--reindex" in sys.argv
     async with SessionLocal() as session:
-        results = await seed_knowledge(session)
+        results = await seed_knowledge(session, force=force)
     print("Corpus institucional sembrado:")
     for title, outcome in results:
         print(f"  [{outcome}] {title}")
