@@ -32,9 +32,14 @@ if (!python) {
   process.exit(1);
 }
 
-const result = spawnSync(python, ["-m", "app.openapi_export"], {
+const result = spawnSync(python, ["-X", "utf8", "-m", "app.openapi_export"], {
   cwd: backend,
   encoding: "utf-8",
+  env: {
+    ...process.env,
+    PYTHONIOENCODING: "utf-8",
+    PYTHONUTF8: "1",
+  },
   maxBuffer: 32 * 1024 * 1024,
 });
 

@@ -6,6 +6,7 @@ arranca, así que esta prueba cubre la forma documentada.
 """
 
 import pytest
+from pydantic import ValidationError
 
 from app.core.config import Settings
 
@@ -56,7 +57,29 @@ def test_domain_windows_are_configurable(monkeypatch):
 
 
 def test_is_local_reflects_the_environment(monkeypatch):
+    # Fuera de `local`/`test` la configuración exige un secreto de webhook real,
+    # así que aquí se aporta uno: la prueba mide `is_local`, no esa guarda.
+    monkeypatch.setenv("KINTI_TELEPHONY_WEBHOOK_SECRET", "x" * 48)
     monkeypatch.setenv("KINTI_ENVIRONMENT", "production")
     assert _settings().is_local is False
     monkeypatch.setenv("KINTI_ENVIRONMENT", "local")
     assert _settings().is_local is True
+
+
+def test_a_placeholder_webhook_secret_cannot_reach_production(monkeypatch):
+    """La guarda que hizo fallar la prueba anterior merece la suya propia.
+
+    Un secreto de firma por defecto en un entorno real permitiría fabricar
+    webhooks de telefonía; que el proceso ni siquiera arranque es la conducta
+    correcta, y conviene fijarla para que nadie la relaje por comodidad.
+    """
+    monkeypatch.setenv("KINTI_ENVIRONMENT", "production")
+
+    monkeypatch.setenv("KINTI_TELEPHONY_WEBHOOK_SECRET", "kinti-fake-webhook-solo-desarrollo")
+    with pytest.raises(ValidationError):
+        _settings()
+
+    # Uno propio pero corto tampoco basta: el largo mínimo es parte de la guarda.
+    monkeypatch.setenv("KINTI_TELEPHONY_WEBHOOK_SECRET", "corto")
+    with pytest.raises(ValidationError):
+        _settings()

@@ -17,7 +17,11 @@ services:
     runtime: docker
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
-    plan: free
+    # Kinti Voz recibe webhooks telefónicos en este mismo proceso. El plan
+    # Starter evita la suspensión por inactividad y el arranque en frío del
+    # plan Free; no separar el módulo de voz durante el MVP evita otro salto de
+    # red y conserva una sola transacción para sesión, solicitud y callback.
+    plan: starter
     region: oregon
     healthCheckPath: /health
 
@@ -74,6 +78,52 @@ services:
         value: "768"
       - key: KINTI_RAG_TOP_K
         value: "5"
+
+      # --- Kinti Voz (Fase 5A) ----------------------------------------------
+      # El despliegue conserva fakes hasta autorizar número, presupuesto,
+      # identidad, retención y SLA. `fake` nunca confirma una cita real.
+      - key: KINTI_TELEPHONY_PROVIDER
+        # Ausente = `fake` por defecto. La configuración actual rechaza `twilio`
+        # aun con secretos; un cambio posterior revisado deberá retirar ese gate
+        # sólo después de completar todas las puertas del runbook.
+        sync: false
+      - key: KINTI_REFERRAL_PROVIDER
+        value: fake
+      - key: KINTI_SCHEDULING_PROVIDER
+        value: fake
+      - key: KINTI_STT_PROVIDER
+        value: fake
+      - key: KINTI_TTS_PROVIDER
+        value: fake
+      - key: KINTI_VOICE_MODE
+        value: turn
+      - key: KINTI_VOICE_LANGUAGE
+        value: es-PE
+      - key: KINTI_VOICE_DEFAULT_SPEECH_RATE
+        value: slow
+      - key: KINTI_VOICE_MAX_CALL_SECONDS
+        value: "480"
+      - key: KINTI_VOICE_MAX_REPROMPTS
+        value: "2"
+      - key: KINTI_VOICE_RECORDING_ENABLED
+        value: "false"
+      - key: KINTI_VOICE_TRANSCRIPT_RETENTION_ENABLED
+        value: "false"
+      - key: KINTI_VOICE_CALLBACK_ENABLED
+        value: "true"
+      - key: KINTI_TELEPHONY_WEBHOOK_SECRET
+        generateValue: true
+
+      # Contrato futuro. Aunque se rellenen, el runtime Fase 5A bloquea Twilio
+      # hasta existir workflow durable, gateways institucionales y plan always-on.
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_PHONE_NUMBER
+        sync: false
+      - key: TWILIO_WEBHOOK_BASE_URL
+        sync: false
 
       # --- Dominio ------------------------------------------------------------
       - key: KINTI_ENVIRONMENT

@@ -1,6 +1,6 @@
-import { useMemo } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { router } from "expo-router";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Redirect, router, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -11,16 +11,28 @@ import { MilestoneCard } from "@/components/MilestoneCard";
 import { NotificationBell } from "@/components/NotificationBell";
 import { StatusPill } from "@/components/StatusPill";
 import { SyncStatusBar } from "@/components/SyncStatusBar";
+import { FamilyAppointmentRequestList } from "@/components/VoiceRequestPanels";
+import { env } from "@/config/env";
+import { api } from "@/infrastructure/api/client";
 import { getNextMilestone } from "@/logic/risk";
 import { colors, spacing, typography } from "@/theme/tokens";
 import { ROUTE_STATUS_PRESENTATION } from "@/theme/statusPresentation";
 import { useKintiStore } from "@/state/store";
+import type { AppointmentRequest } from "@/types";
 
 export default function CaregiverHomeScreen() {
   const selectedPatientId = useKintiStore((s) => s.selectedPatientId);
+  const role = useKintiStore((s) => s.role);
   const patients = useKintiStore((s) => s.patients);
   const milestones = useKintiStore((s) => s.milestones);
   const confirmAttendance = useKintiStore((s) => s.confirmAttendance);
+  const [appointmentRequests, setAppointmentRequests] = useState<AppointmentRequest[]>([]);
+  const [appointmentRequestsLoading, setAppointmentRequestsLoading] = useState(
+    env.dataMode === "remote",
+  );
+  const [appointmentRequestsRefreshing, setAppointmentRequestsRefreshing] = useState(false);
+  const [appointmentRequestsError, setAppointmentRequestsError] = useState<string | null>(null);
+  const appointmentLoadGeneration = useRef(0);
 
   const patient = patients.find((p) => p.id === selectedPatientId);
   const nextMilestone = useMemo(
@@ -28,17 +40,77 @@ export default function CaregiverHomeScreen() {
     [selectedPatientId, milestones],
   );
 
-  if (!patient) return null;
-
   const canConfirm =
     nextMilestone &&
     !nextMilestone.attendanceConfirmed &&
     nextMilestone.status !== "support_needed" &&
     nextMilestone.status !== "missed";
 
+  const loadAppointmentRequests = useCallback(async (refresh = false) => {
+    const generation = ++appointmentLoadGeneration.current;
+    if (role !== "caregiver" || !selectedPatientId) return;
+
+    setAppointmentRequestsError(null);
+    if (refresh) {
+      setAppointmentRequestsRefreshing(true);
+    } else {
+      setAppointmentRequestsLoading(true);
+    }
+
+    if (env.dataMode !== "remote") {
+      if (generation === appointmentLoadGeneration.current) {
+        setAppointmentRequests(demoAppointmentRequests(selectedPatientId));
+        setAppointmentRequestsLoading(false);
+        setAppointmentRequestsRefreshing(false);
+      }
+      return;
+    }
+
+    try {
+      const requests = await api.appointmentRequests(selectedPatientId);
+      if (generation === appointmentLoadGeneration.current) {
+        setAppointmentRequests(requests);
+      }
+    } catch {
+      if (generation === appointmentLoadGeneration.current) {
+        setAppointmentRequestsError(
+          "No pudimos actualizar las solicitudes de cita. Revisa la conexión e inténtalo nuevamente.",
+        );
+      }
+    } finally {
+      if (generation === appointmentLoadGeneration.current) {
+        setAppointmentRequestsLoading(false);
+        setAppointmentRequestsRefreshing(false);
+      }
+    }
+  }, [role, selectedPatientId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void loadAppointmentRequests();
+      return () => {
+        appointmentLoadGeneration.current += 1;
+      };
+    }, [loadAppointmentRequests]),
+  );
+
+  if (role === "patient" || role === "child") return <Redirect href="/child" />;
+  if (role === "care_team") return <Redirect href="/care-team" />;
+  if (!patient) return null;
+
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        refreshControl={
+          env.dataMode === "remote" ? (
+            <RefreshControl
+              refreshing={appointmentRequestsRefreshing}
+              onRefresh={() => void loadAppointmentRequests(true)}
+            />
+          ) : undefined
+        }
+      >
         <DemoBanner />
         <SyncStatusBar />
 
@@ -92,6 +164,14 @@ export default function CaregiverHomeScreen() {
           </Card>
         )}
 
+        <FamilyAppointmentRequestList
+          role={role}
+          requests={appointmentRequests}
+          loading={appointmentRequestsLoading}
+          error={appointmentRequestsError}
+          onRetry={() => void loadAppointmentRequests()}
+        />
+
         <View style={styles.secondaryActions}>
           <Button
             label="Ver mi ruta completa"
@@ -115,6 +195,43 @@ export default function CaregiverHomeScreen() {
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+function demoAppointmentRequests(patientId: string): AppointmentRequest[] {
+  return [
+    {
+      id: `voice-demo-submitted-${patientId}`,
+      patientId,
+      requestedBy: "caregiver-demo",
+      referralId: null,
+      voiceSessionId: "voice-session-demo",
+      requestKind: "new",
+      source: "voice",
+      status: "submitted",
+      selectedSlotId: null,
+      proposalExpiresAt: null,
+      externalResult: "manual_review",
+      version: 2,
+      createdAt: "2026-08-14T15:20:00-05:00",
+      updatedAt: "2026-08-14T15:28:00-05:00",
+    },
+    {
+      id: `voice-demo-confirmed-${patientId}`,
+      patientId,
+      requestedBy: "caregiver-demo",
+      referralId: null,
+      voiceSessionId: "voice-session-demo-previous",
+      requestKind: "new",
+      source: "voice",
+      status: "confirmed",
+      selectedSlotId: "slot-demo-confirmed",
+      proposalExpiresAt: null,
+      externalResult: "institutional_confirmation",
+      version: 4,
+      createdAt: "2026-08-07T09:00:00-05:00",
+      updatedAt: "2026-08-08T11:10:00-05:00",
+    },
+  ];
 }
 
 const styles = StyleSheet.create({

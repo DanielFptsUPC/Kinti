@@ -16,6 +16,7 @@ from uuid import UUID
 # --------------------------------------------------------------------- tipos
 
 Modality = Literal["text", "audio", "image"]
+ModelTask = Literal["assistant", "voice_intent"]
 
 Intent = Literal[
     "institutional_faq",
@@ -25,6 +26,16 @@ Intent = Literal[
     "request_callback",
     "administrative_document_question",
     "clinical_or_safety_concern",
+    "voice_service_hours",
+    "voice_referral_status",
+    "voice_appointment",
+    "voice_human_help",
+    "voice_repeat",
+    "voice_slow_down",
+    "voice_did_not_understand",
+    "voice_back",
+    "voice_clinical_or_safety",
+    "voice_unknown",
     "unknown",
 ]
 
@@ -93,6 +104,8 @@ class ModelRequest:
     system_prompt_version: str
     question: str
     modality: Modality
+    #: Selecciona un contrato estructurado especializado sin cambiar de proveedor.
+    task: ModelTask = "assistant"
     chunks: tuple[RetrievedChunk, ...] = ()
     media: MediaRef | None = None
     language: str = "es-PE"
@@ -106,6 +119,9 @@ class ModelResponse:
     confidence: Confidence = "insufficient_evidence"
     needs_human: bool = False
     proposed_action: ProposedAction | None = None
+    #: Salida estructurada sin interpretar. El caso de uso consumidor debe
+    #: validarla con su propio esquema antes de confiar en ella.
+    structured_output: dict[str, object] | None = None
     #: Métricas sin contenido sensible.
     latency_ms: int = 0
     model_id: str = "fake"

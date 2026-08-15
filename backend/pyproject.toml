@@ -1,7 +1,7 @@
 [project]
 name = "kinti-backend"
-version = "2.0.0"
-description = "Kinti — piloto conectado de continuidad hematológica pediátrica (Fase 2)"
+version = "2.1.0"
+description = "Kinti — continuidad pediátrica y Kinti Voz accesible (Fase 5A)"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115",
@@ -20,6 +20,8 @@ dependencies = [
     "pgvector>=0.3",
     # Cliente HTTP del adaptador de Supabase Storage.
     "httpx>=0.27",
+    # Validador oficial de firmas y contratos de Programmable Voice.
+    "twilio>=9.0,<10",
 ]
 
 [project.optional-dependencies]

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -8,13 +8,14 @@ import {
   Text,
   View,
 } from "react-native";
-import { router } from "expo-router";
+import { Redirect, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { DemoBanner } from "@/components/DemoBanner";
+import { CareTeamVoiceRequestsPanel } from "@/components/VoiceRequestPanels";
 import { env } from "@/config/env";
 import type {
   OperationsDashboard,
@@ -24,7 +25,11 @@ import type {
 import { api } from "@/infrastructure/api/client";
 import { useKintiStore } from "@/state/store";
 import { colors, radius, spacing, typography } from "@/theme/tokens";
-import { BARRIER_CATEGORY_LABEL } from "@/types";
+import {
+  BARRIER_CATEGORY_LABEL,
+  type AppointmentRequest,
+  type VoiceCallbackRequest,
+} from "@/types";
 import { formatDateTime } from "@/utils/formatDate";
 
 const CAPACITY_COPY = {
@@ -42,6 +47,7 @@ const SOCIAL_COPY = {
 } as const;
 
 export default function OperationsScreen() {
+  const role = useKintiStore((state) => state.role);
   const patients = useKintiStore((state) => state.patients);
   const milestones = useKintiStore((state) => state.milestones);
   const alerts = useKintiStore((state) => state.alerts);
@@ -49,6 +55,26 @@ export default function OperationsScreen() {
   const [loading, setLoading] = useState(env.dataMode === "remote");
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [voiceAppointmentRequests, setVoiceAppointmentRequests] = useState<
+    AppointmentRequest[]
+  >([]);
+  const [appointmentsLoading, setAppointmentsLoading] = useState(env.dataMode === "remote");
+  const [appointmentsError, setAppointmentsError] = useState<string | null>(null);
+  const [callbackRequests, setCallbackRequests] = useState<VoiceCallbackRequest[]>([]);
+  const [callbacksLoading, setCallbacksLoading] = useState(env.dataMode === "remote");
+  const [callbacksError, setCallbacksError] = useState<string | null>(null);
+  const loadGeneration = useRef(0);
+
+  const patientNames = useMemo(
+    () => Object.fromEntries(patients.map((patient) => [patient.id, patient.displayName])),
+    [patients],
+  );
+
+  const localCallbackRequests = useMemo(() => demoVoiceCallbackRequests(patients), [patients]);
+  const localVoiceAppointmentRequests = useMemo(
+    () => demoVoiceAppointmentRequests(patients),
+    [patients],
+  );
 
   const localDashboard = useMemo<OperationsDashboard>(() => {
     const workload: OperationalWorkloadRow = {
@@ -96,28 +122,96 @@ export default function OperationsScreen() {
   }, [alerts, milestones, patients]);
 
   const load = useCallback(async (refresh = false) => {
-    if (env.dataMode !== "remote") return;
+    const generation = ++loadGeneration.current;
+    if (env.dataMode !== "remote" || role !== "care_team") return;
     if (refresh) {
       setRefreshing(true);
     } else {
       setLoading(true);
+      setAppointmentsLoading(true);
+      setCallbacksLoading(true);
     }
     setError(null);
-    try {
-      setDashboard(await api.operationsDashboard(new Date().toISOString()));
-    } catch {
-      setError("No pudimos actualizar la coordinación. Revisa la conexión e inténtalo nuevamente.");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+    setAppointmentsError(null);
+    setCallbacksError(null);
+
+    const dashboardPromise = api
+      .operationsDashboard(new Date().toISOString())
+      .then((result) => {
+        if (generation === loadGeneration.current) setDashboard(result);
+      })
+      .catch(() => {
+        if (generation === loadGeneration.current) {
+          setError(
+            "No pudimos actualizar la coordinación. Revisa la conexión e inténtalo nuevamente.",
+          );
+        }
+      })
+      .finally(() => {
+        if (generation === loadGeneration.current) setLoading(false);
+      });
+
+    const appointmentsPromise = Promise.all(
+      patients.map((patient) => api.appointmentRequests(patient.id)),
+    )
+      .then((groups) => {
+        if (generation !== loadGeneration.current) return;
+        setVoiceAppointmentRequests(
+          groups
+            .flat()
+            .filter((request) => request.source === "voice")
+            .sort(
+              (left, right) =>
+                new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime(),
+            ),
+        );
+      })
+      .catch(() => {
+        if (generation === loadGeneration.current) {
+          setAppointmentsError(
+            "No pudimos actualizar las solicitudes de cita por voz. Revisa la conexión e inténtalo nuevamente.",
+          );
+        }
+      })
+      .finally(() => {
+        if (generation === loadGeneration.current) setAppointmentsLoading(false);
+      });
+
+    const callbacksPromise = api
+      .voiceCallbackRequests()
+      .then((result) => {
+        if (generation === loadGeneration.current) setCallbackRequests(result);
+      })
+      .catch(() => {
+        if (generation === loadGeneration.current) {
+          setCallbacksError(
+            "No pudimos actualizar las devoluciones de llamada. Revisa la conexión e inténtalo nuevamente.",
+          );
+        }
+      })
+      .finally(() => {
+        if (generation === loadGeneration.current) setCallbacksLoading(false);
+      });
+
+    await Promise.allSettled([dashboardPromise, appointmentsPromise, callbacksPromise]);
+    if (generation === loadGeneration.current) setRefreshing(false);
+  }, [patients, role]);
 
   useEffect(() => {
     void load();
+    return () => {
+      loadGeneration.current += 1;
+    };
   }, [load]);
 
   const data = env.dataMode === "remote" ? dashboard : localDashboard;
+  const displayedCallbackRequests =
+    env.dataMode === "remote" ? callbackRequests : localCallbackRequests;
+  const displayedVoiceAppointmentRequests =
+    env.dataMode === "remote" ? voiceAppointmentRequests : localVoiceAppointmentRequests;
+
+  if (role === "patient" || role === "child") return <Redirect href="/child" />;
+  if (role === "caregiver") return <Redirect href="/caregiver" />;
 
   if (loading && !data) {
     return (
@@ -152,6 +246,18 @@ export default function OperationsScreen() {
             <Button label="Reintentar" variant="ghost" onPress={() => void load()} />
           </Card>
         ) : null}
+
+        <CareTeamVoiceRequestsPanel
+          role={role}
+          appointmentRequests={displayedVoiceAppointmentRequests}
+          callbackRequests={displayedCallbackRequests}
+          patientNames={patientNames}
+          appointmentsLoading={appointmentsLoading}
+          callbacksLoading={callbacksLoading}
+          appointmentsError={appointmentsError}
+          callbacksError={callbacksError}
+          onRetry={() => void load()}
+        />
 
         <SectionTitle title="Recuperación y Servicio Social" icon="people" />
         {data?.socialWork.rows.length ? (
@@ -214,6 +320,94 @@ export default function OperationsScreen() {
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+function demoVoiceAppointmentRequests(
+  patients: { id: string; displayName: string }[],
+): AppointmentRequest[] {
+  const first = patients[0];
+  const second = patients[1] ?? first;
+  if (!first) return [];
+
+  return [
+    {
+      id: "voice-appointment-demo-submitted",
+      patientId: first.id,
+      requestedBy: "caregiver-demo",
+      referralId: null,
+      voiceSessionId: "voice-session-demo-submitted",
+      requestKind: "new",
+      source: "voice",
+      status: "submitted",
+      selectedSlotId: null,
+      proposalExpiresAt: null,
+      externalResult: "manual_review",
+      version: 2,
+      createdAt: "2026-08-14T15:20:00-05:00",
+      updatedAt: "2026-08-14T15:28:00-05:00",
+    },
+    {
+      id: "voice-appointment-demo-confirmed",
+      patientId: second.id,
+      requestedBy: "caregiver-demo",
+      referralId: null,
+      voiceSessionId: "voice-session-demo-confirmed",
+      requestKind: "new",
+      source: "voice",
+      status: "confirmed",
+      selectedSlotId: "slot-demo-confirmed",
+      proposalExpiresAt: null,
+      externalResult: "institutional_confirmation",
+      version: 4,
+      createdAt: "2026-08-14T13:20:00-05:00",
+      updatedAt: "2026-08-14T14:10:00-05:00",
+    },
+  ];
+}
+
+function demoVoiceCallbackRequests(
+  patients: { id: string; displayName: string }[],
+): VoiceCallbackRequest[] {
+  const first = patients[0];
+  const second = patients[1] ?? first;
+  if (!first) return [];
+
+  return [
+    {
+      id: "callback-demo-requested",
+      voiceSessionId: "voice-session-demo-requested",
+      actorId: null,
+      patientId: first.id,
+      reasonCode: "requested_by_caller",
+      status: "requested",
+      slaDueAt: "2026-08-14T18:00:00-05:00",
+      assignedTo: null,
+      completedAt: null,
+      outcomeCode: null,
+      createdAt: "2026-08-14T15:20:00-05:00",
+      updatedAt: "2026-08-14T15:28:00-05:00",
+    },
+    // El literal se anota: dentro del ternario no hay tipo contextual y
+    // `reasonCode` se ensancharía a `string`.
+    ...(second
+      ? ([
+          {
+            id: "callback-demo-assigned",
+            voiceSessionId: "voice-session-demo-assigned",
+            actorId: null,
+            patientId: second.id,
+            reasonCode: "two_comprehension_failures",
+            status: "assigned" as const,
+            slaDueAt: "2026-08-14T17:30:00-05:00",
+            assignedTo: "team-member-demo",
+            completedAt: null,
+            outcomeCode: null,
+            createdAt: "2026-08-14T14:40:00-05:00",
+            updatedAt: "2026-08-14T15:05:00-05:00",
+          },
+        ] satisfies VoiceCallbackRequest[])
+      : []),
+  ];
 }
 
 function SectionTitle({ title, icon }: { title: string; icon: keyof typeof Ionicons.glyphMap }) {

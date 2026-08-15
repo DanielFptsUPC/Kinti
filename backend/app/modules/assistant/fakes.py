@@ -11,11 +11,13 @@ salidas, para que una prueba que falla sea una prueba que encontró algo.
 import hashlib
 import math
 import re
+import unicodedata
 
 from app.modules.assistant.ports import (
     Citation,
     EmbeddingProvider,
     ExtractedDocument,
+    Intent,
     MediaRef,
     ModelRequest,
     ModelResponse,
@@ -89,6 +91,9 @@ class FakeMultimodalModel(MultimodalModel):
         return self._model_id
 
     async def generate(self, request: ModelRequest) -> ModelResponse:
+        if request.task == "voice_intent":
+            return _classify_voice_intent(request.question, self._model_id)
+
         question = request.question.lower()
 
         # Barrera explícita: propone acción, nunca la ejecuta.
@@ -240,6 +245,82 @@ def _summarize(content: str) -> str:
     """Primera oración del fragmento: respuesta breve y trazable a su fuente."""
     sentences = re.split(r"(?<=[.!?])\s+", content.strip())
     return sentences[0] if sentences else content[:200]
+
+
+def _classify_voice_intent(question: str, model_id: str) -> ModelResponse:
+    """Clasificador local para probar Kinti Voz sin proveedor ni red."""
+    value = _normalize(question)
+    intent: Intent = "voice_unknown"
+    suggested_tool = "none"
+    needs_human = False
+    confidence = 0.2
+
+    if _mentions(
+        value,
+        (
+            "fiebre",
+            "sangrado",
+            "dolor",
+            "dosis",
+            "medicamento",
+            "resultado",
+            "emergencia",
+        ),
+    ):
+        intent = "voice_clinical_or_safety"
+        needs_human = True
+        confidence = 1.0
+    elif _mentions(value, ("persona", "humano", "operador", "hablar con alguien")):
+        intent = "voice_human_help"
+        suggested_tool = "request_callback"
+        needs_human = True
+        confidence = 0.98
+    elif _mentions(value, ("repita", "repetir", "otra vez")):
+        intent = "voice_repeat"
+        confidence = 0.99
+    elif _mentions(value, ("mas despacio", "hable lento", "mas lento")):
+        intent = "voice_slow_down"
+        confidence = 0.99
+    elif _mentions(value, ("no entendi", "no comprendi")):
+        intent = "voice_did_not_understand"
+        confidence = 0.99
+    elif _mentions(value, ("volver", "atras", "regresar")):
+        intent = "voice_back"
+        confidence = 0.99
+    elif _mentions(value, ("horario", "a que hora", "cuando atienden", "cuando abren")):
+        intent = "voice_service_hours"
+        suggested_tool = "get_service_hours"
+        confidence = 0.96
+    elif _mentions(value, ("referencia", "derivacion", "papel del hospital")):
+        intent = "voice_referral_status"
+        suggested_tool = "lookup_referral"
+        confidence = 0.95
+    elif _mentions(value, ("cita", "turno", "fecha para atender", "fecha para que atiendan")):
+        intent = "voice_appointment"
+        suggested_tool = "search_appointment_options"
+        confidence = 0.95
+
+    return ModelResponse(
+        intent=intent,
+        answer="",
+        confidence=("supported" if intent != "voice_unknown" else "insufficient_evidence"),
+        needs_human=needs_human,
+        structured_output={
+            "intent": intent,
+            "suggested_tool": suggested_tool,
+            "confidence": confidence,
+            "needs_human": needs_human,
+        },
+        model_id=model_id,
+    )
+
+
+def _normalize(text: str) -> str:
+    decomposed = unicodedata.normalize("NFD", text.casefold().strip())
+    without_marks = "".join(
+        character for character in decomposed if unicodedata.category(character) != "Mn"
+    )
+    return re.sub(r"\s+", " ", without_marks)
 
 
 class FakeDocumentExtractor:

@@ -36,16 +36,30 @@ from app.modules.notifications.models import NotificationOutbox
 from app.modules.operations.models import AmbulatoryCapacitySlot
 from app.modules.patients.models import CaregiverPatientLink, CareTeamAssignment, Patient
 from app.modules.sync.models import ProcessedOperation
+from app.modules.voice.models import (
+    AppointmentHold,
+    AppointmentRequest,
+    AppointmentSlot,
+    CallbackRequest,
+    ReferralCase,
+    ServiceHour,
+    VoiceEvent,
+    VoiceSession,
+)
 
 __all__ = [
     "AiRun",
     "AmbulatoryCapacitySlot",
     "AttendanceConfirmation",
     "AuditEvent",
+    "AppointmentHold",
+    "AppointmentRequest",
+    "AppointmentSlot",
     "BarrierAlert",
     "Base",
     "CareTeamAssignment",
     "CaregiverPatientLink",
+    "CallbackRequest",
     "CompanionPreferences",
     "ConversationMedia",
     "ConversationMessage",
@@ -63,7 +77,11 @@ __all__ = [
     "PatientSupportRequest",
     "PatientUserLink",
     "ProcessedOperation",
+    "ReferralCase",
     "RetrievalEvidence",
     "SafetyEvent",
+    "ServiceHour",
     "User",
+    "VoiceEvent",
+    "VoiceSession",
 ]

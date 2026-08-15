@@ -1,9 +1,9 @@
 # Kinti — Fase 4: continuidad, coordinación y acompañamiento protegido
 
-**Versión del alcance:** 2.0  
+**Versión del alcance:** 2.1
 **Fecha:** 2026-08-14  
-**Estado:** núcleo operativo validado; adecuación final del espacio infantil pendiente  
-**Fuentes:** documento oficial del Desafío 03 y `phases/BITACORA_FASE_3.md`
+**Estado:** núcleo de Fase 4 desplegado; ampliación del agente de citas diseñada y pendiente de implementación
+**Fuentes:** documento oficial del Desafío 03, `phases/BITACORA_FASE_3.md`, `phases/BITACORA_FASE_4.md`, entrevista médica en Obsidian y `docs/adr/0003-agente-conversacional-citas.md`
 
 ---
 
@@ -18,6 +18,12 @@ Salud del Niño San Borja.
 > trazable para el equipo asistencial y una experiencia infantil voluntaria que
 > acompañe emocionalmente sin trasladar al menor la responsabilidad o la carga
 > informativa del tratamiento.
+
+La ampliación conversacional permite que el cuidador consulte, prepare y
+solicite la coordinación de citas en lenguaje natural. Su valor no es “chatear
+con una IA”, sino convertir restricciones de viaje, alojamiento, disponibilidad
+y preparación en una solicitud trazable y, cuando existan datos autorizados de
+agenda, en una propuesta de itinerario que una persona debe confirmar.
 
 El piloto puede priorizar pacientes con leucemia infantil, pero el desafío
 institucional y el modelo de dominio abarcan hematología pediátrica.
@@ -94,7 +100,9 @@ depender de QR, descarga inmediata, plan pospago o conversación con IA.
 ### P-06. IA subordinada a reglas y personas
 
 La IA puede facilitar lenguaje, búsqueda y clasificación, pero no diagnostica,
-prescribe, realiza triaje, modifica citas ni decide la distribución de personal.
+prescribe, realiza triaje, decide prioridad clínica, confirma citas ni decide la
+distribución de personal. La agenda institucional, el dominio determinista y la
+confirmación humana prevalecen sobre cualquier salida del modelo.
 
 ## 5. Arquitectura del producto: tres experiencias
 
@@ -112,6 +120,11 @@ flowchart TB
     Care --> API
     API --> DB["Supabase PostgreSQL"]
     API --> RAG["RAG con contenido aprobado"]
+    Family --> Agent["Agente de coordinación de citas"]
+    Agent --> API
+    API --> Scheduler["Dominio de citas + OR-Tools"]
+    Scheduler --> Gateway["SchedulingGateway"]
+    Gateway --> Agenda["Agenda institucional o cola manual"]
 ```
 
 ### 5.1 Kinti Familia
@@ -138,6 +151,27 @@ alertas, intervenciones, derivaciones, carga ponderada y capacidad ambulatoria.
 
 En producción deberá separarse el perfil clínico del perfil coordinador/gestor y,
 si corresponde, del perfil de Servicio Social.
+
+### 5.4 Agente de coordinación de citas — arquitectura objetivo
+
+El agente pertenece a **Kinti Familia** y no a Kinti Compañero. Reutiliza la API
+FastAPI como única frontera y se implementa como un flujo tipado, no como un
+agente autónomo con acceso directo a la base de datos.
+
+| Capa | Tecnología | Responsabilidad |
+|---|---|---|
+| Conversación multimodal | Vertex AI con `gemini-2.5-flash` mediante `google-genai` | Comprender intención, texto, audio o imagen administrativa y producir argumentos tipados. |
+| Orquestación | LangGraph limitado al módulo de citas | Mantener estado, pausar, solicitar confirmación y reanudar. |
+| Reglas de negocio | FastAPI + Pydantic | Autorizar, validar vigencia, aplicar reglas y ejecutar herramientas permitidas. |
+| Optimización | Google OR-Tools CP-SAT | Proponer itinerarios factibles a partir de restricciones y cupos. |
+| Datos | Supabase PostgreSQL, `pgvector` y búsqueda híbrida | Persistir la verdad operacional y recuperar únicamente conocimiento aprobado. |
+| Trabajo asíncrono | Puerto `TaskQueue` con Supabase Queues (`pgmq`) + Cron (`pg_cron`) | Recordatorios, vencimientos y reintentos idempotentes. |
+| Cliente | Expo + SQLite + outbox | Mostrar itinerario liviano y conservar solicitudes con conectividad intermitente. |
+
+Se mantienen Render, Supabase y Vertex AI para el piloto. No se justifica migrar
+la solución completa a microservicios ni a otro proveedor antes de medir carga,
+latencia y restricciones institucionales. La decisión completa se registra en
+`docs/adr/0003-agente-conversacional-citas.md`.
 
 ## 6. Roles y permisos finales
 
@@ -286,6 +320,26 @@ Contenido prohibido por defecto:
 | RF-IA-05 | No exponer el asistente clínico conversacional en Kinti Compañero. | Must |
 | RF-IA-06 | Si se usa IA para adaptar lenguaje infantil, partir de contenido aprobado, no inventar hechos y requerir supervisión adulta. | Should |
 
+### 7.6 Agente conversacional de coordinación de citas
+
+| ID | Requisito | Prioridad |
+|---|---|---:|
+| RF-AGD-01 | Responder preguntas administrativas con RAG, fuentes aprobadas y abstención cuando no haya evidencia suficiente. | Must |
+| RF-AGD-02 | Recoger del cuidador solo las restricciones necesarias: procedencia, ventana de viaje, acompañante, alojamiento, movilidad y disponibilidad. | Must |
+| RF-AGD-03 | Consultar citas, cupos y estados dinámicos mediante herramientas de dominio; nunca desde embeddings ni memoria del modelo. | Must |
+| RF-AGD-04 | Diferenciar visual y verbalmente entre **orientación**, **propuesta**, **solicitud enviada** y **cita confirmada**. | Must |
+| RF-AGD-05 | Usar un optimizador determinista para combinar varias atenciones; el LLM no asigna horarios. | Must |
+| RF-AGD-06 | Aplicar primero reglas clínicas e institucionales autorizadas y luego preferencias de viaje o espera. | Must |
+| RF-AGD-07 | Solicitar confirmación explícita del cuidador antes de crear, modificar o cancelar una solicitud operativa. | Must |
+| RF-AGD-08 | Ejecutar escrituras con clave de idempotencia, autorización del servidor y auditoría mínima. | Must |
+| RF-AGD-09 | Volver a comprobar vigencia y disponibilidad al confirmar una propuesta; una propuesta vencida nunca se ejecuta. | Must |
+| RF-AGD-10 | Si no existe integración de agenda, crear una solicitud para revisión humana y no afirmar que la cita quedó confirmada. | Must |
+| RF-AGD-11 | Convertir barreras de transporte, alojamiento o recursos en seguimiento/derivación autorizada, no en menor prioridad. | Must |
+| RF-AGD-12 | Guardar un resumen de itinerario disponible offline, con estado y última sincronización visibles. | Should |
+| RF-AGD-13 | No usar procedencia, pobreza o comportamiento para puntuar riesgo clínico o distribuir atención. | Must |
+| RF-AGD-14 | Restringir el agente de citas al cuidador y al equipo autorizado; la cuenta `patient` no puede invocarlo. | Must |
+| RF-AGD-15 | Derivar a una persona cuando no exista solución factible, falten datos, haya conflicto de reglas o la familia solicite ayuda. | Must |
+
 ## 8. Coordinación, carga y capacidad
 
 ### 8.1 Carga ponderada del prototipo
@@ -313,6 +367,22 @@ esperada. La demanda cuenta hitos programados dentro de la franja.
 
 Los umbrales son sintéticos y requieren validación con Clínica de Día.
 
+### 8.3 Turnos e itinerarios familiares
+
+El agente no “elige la mejor cita” mediante texto generativo. Construye un
+problema de restricciones con información autorizada y entrega al optimizador:
+
+- servicios requeridos y dependencias entre atenciones;
+- ventanas y duración de cupos disponibles;
+- reglas clínicas/institucionales codificadas por el dominio;
+- procedencia y ventanas de viaje declaradas por la familia;
+- disponibilidad de acompañante, alojamiento y movilidad; y
+- preferencias blandas, como reducir días de permanencia o esperas extensas.
+
+OR-Tools devuelve cero o más alternativas factibles con una explicación
+trazable. FastAPI vuelve a validar disponibilidad al confirmar. Si no hay fuente
+institucional de agenda, la alternativa solo origina una solicitud manual.
+
 ## 9. Contrato de API operativo
 
 | Método | Ruta | Propósito |
@@ -326,10 +396,9 @@ Los umbrales son sintéticos y requieren validación con Clínica de Día.
 Los endpoints operativos se restringen al equipo. La cola de Servicio Social se
 filtra por pacientes autorizados.
 
-### 9.1 Contrato infantil requerido — pendiente de implementación
+### 9.1 Contrato infantil implementado y desplegado
 
-Estas operaciones aún no pertenecen al OpenAPI generado y forman parte de la
-definición de terminado:
+Estas operaciones pertenecen al contrato OpenAPI desplegado:
 
 | Método | Ruta propuesta | Propósito |
 |---|---|---|
@@ -343,7 +412,7 @@ definición de terminado:
 No se acepta un endpoint infantil que reciba un `patient_id` arbitrario para
 leer datos: el servidor lo deriva del token `patient`.
 
-### 9.2 Datos requeridos — pendiente de migración
+### 9.2 Datos infantiles implementados
 
 | Entidad | Campos mínimos | Regla |
 |---|---|---|
@@ -355,6 +424,32 @@ La credencial se almacena mediante el mecanismo de identidad, nunca dentro de
 `patients` ni en texto plano. Si se usa PIN, debe tener limitación de intentos,
 hash seguro y recuperación adulta; una passkey o credencial del dispositivo es
 preferible cuando el contexto lo permita.
+
+### 9.3 Contrato del agente de citas — propuesto, no implementado
+
+El diálogo reutilizará las sesiones y confirmaciones del asistente existentes.
+El dominio de agenda se incorporará detrás de rutas explícitas; los nombres
+pueden ajustarse al contrato institucional antes de congelar OpenAPI.
+
+| Método | Ruta propuesta | Propósito |
+|---|---|---|
+| `GET` | `/api/v1/patients/{patient_id}/itinerary` | Obtener el itinerario vigente autorizado para el cuidador. |
+| `POST` | `/api/v1/patients/{patient_id}/appointment-requests` | Crear idempotentemente una solicitud confirmada por el cuidador. |
+| `GET` | `/api/v1/appointment-requests/{request_id}` | Consultar estado y procedencia del cambio. |
+| `POST` | `/api/v1/itinerary-proposals/{proposal_id}/confirm` | Confirmar una propuesta vigente antes de enviarla al gateway. |
+
+La conversación no recibe credenciales de base ni llama directamente a estas
+rutas. Invoca herramientas internas tipadas, y estas pasan por autorización,
+dominio, `SchedulingGateway`, auditoría y cola de tareas.
+
+Datos nuevos previstos:
+
+| Entidad | Contenido mínimo | Regla principal |
+|---|---|---|
+| `appointment_requests` | paciente, actor, tipo, estado, idempotencia y procedencia | No equivale a una cita confirmada. |
+| `travel_constraints` | ventanas, acompañante, movilidad y alojamiento | Mínimo dato necesario, editable y con retención definida. |
+| `itinerary_proposals` | alternativas, función objetivo, vencimiento y estado | Inmutable; debe revalidarse antes de confirmar. |
+| `appointment_slot_mirror` | referencia externa, servicio, ventana, capacidad, versión y sincronización | Es un espejo; la agenda institucional conserva autoridad. |
 
 ## 10. Requisitos no funcionales
 
@@ -371,7 +466,9 @@ preferible cuando el contexto lo permita.
 - autorización en servidor, no solo ocultamiento visual;
 - aislamiento entre familias;
 - asignaciones activas para el equipo;
-- idempotencia de operaciones; y
+- idempotencia de operaciones;
+- herramientas del agente bajo lista blanca y sin credenciales de base de datos;
+- confirmación explícita y revalidación para toda escritura de agenda; y
 - futuro RBAC separado para coordinación y Servicio Social.
 
 ### RNF-03. Bajo consumo y resiliencia
@@ -379,7 +476,10 @@ preferible cuando el contexto lo permita.
 - flujos familiares críticos disponibles con conectividad intermitente;
 - estados de sincronización visibles;
 - contenido infantil liviano y descargable con anticipación; y
-- ninguna dependencia crítica de video, audio continuo o modelo en línea.
+- ninguna dependencia crítica de video, audio continuo o modelo en línea;
+- resumen de itinerario accesible offline; y
+- degradación a formulario/cola humana si el modelo, el optimizador o la agenda
+  no están disponibles.
 
 ### RNF-04. Accesibilidad y comprensión
 
@@ -392,7 +492,7 @@ preferible cuando el contexto lo permita.
 ### RNF-05. Observabilidad segura
 
 - métricas sin notas clínicas ni texto libre;
-- trazabilidad de errores y operaciones;
+- trazabilidad de errores, herramientas, confirmaciones y operaciones;
 - salud separada de proceso y base de datos; y
 - medición de tiempos de respuesta asistencial.
 
@@ -404,21 +504,27 @@ preferible cuando el contexto lo permita.
 | Carga, capacidad y cola de recuperación | ✅ implementado |
 | Derivación distinta de resolución | ✅ implementado |
 | Privacidad de cola por asignación | ✅ implementado |
-| Cuenta `patient` separada del cuidador | ⏳ pendiente |
-| Token infantil limitado a un paciente | ⏳ pendiente |
-| Recuperación/suspensión por adulto autorizado | ⏳ pendiente |
-| Reautenticación para entrar al espacio cuidador | ⏳ pendiente |
+| Cuenta `patient` separada y token limitado | ✅ implementado y desplegado |
+| Recuperación/suspensión por adulto autorizado | ✅ implementado y desplegado |
+| Reautenticación para entrar al espacio cuidador | ✅ implementado |
 | Registro emocional infantil | ✅ implementado |
-| Eliminar mapa y lista de hitos del espacio infantil | ⏳ pendiente |
-| Evitar título clínico del próximo hito en pantalla infantil | ⏳ pendiente |
-| Solicitudes “quiero hablar/tengo miedo/necesito ayuda” | ⏳ pendiente |
-| Control cuidador para habilitar contenido infantil | ⏳ pendiente |
+| Espacio infantil sin mapa, hitos ni título clínico | ✅ implementado |
+| Solicitudes “quiero hablar/tengo miedo/necesito ayuda” | ✅ implementado y verificado remotamente |
+| Control cuidador para habilitar contenido infantil | ✅ implementado |
+| Contrato OpenAPI | ✅ 45 rutas únicas y 60 esquemas |
+| Suite automatizada | ✅ 396 pruebas: 249 backend + 147 móvil |
 | Contenido curado por banda de desarrollo | ⏳ pendiente de validación institucional |
 | Prueba con Psicología, familias y experiencia del paciente | ⏳ pendiente |
+| ADR del agente conversacional de citas | ✅ diseñado en ADR 0003 |
+| Fuente institucional autorizada de agenda | ⏳ pendiente de definición/acceso |
+| `SchedulingGateway`, grafo conversacional y herramientas | ⏳ no implementado |
+| Optimización de itinerarios con OR-Tools | ⏳ no implementado |
+| Cola durable de tareas y recordatorios | ⏳ no implementado |
 
-La pantalla actual `app/child/index.tsx` todavía usa `StageMap` y el título del
-próximo hito. Esto contradice RF-NNA-01, RF-NNA-02 y RF-NNA-04; por tanto, la
-Fase 4 no debe declararse completamente cerrada hasta corregirlo.
+El núcleo técnico de Fase 4 y Kinti Compañero ya fue desplegado y verificado. La
+validación institucional sigue abierta. El agente de citas descrito en este
+alcance es la siguiente ampliación arquitectónica y no debe presentarse como
+una función disponible mientras sus filas continúen pendientes.
 
 ## 12. Criterios de aceptación finales
 
@@ -431,7 +537,8 @@ Fase 4 no debe declararse completamente cerrada hasta corregirlo.
 - [x] La auditoría no almacena la nota libre.
 - [x] La carga se calcula sin reasignar pacientes.
 - [x] La capacidad cuenta solo hitos dentro de la franja.
-- [x] OpenAPI refleja 37 rutas únicas y 50 esquemas.
+- [x] OpenAPI refleja 45 rutas únicas y 60 esquemas.
+- [x] Las suites suman 396 pruebas en verde.
 
 ### 12.2 Protección infantil
 
@@ -452,12 +559,25 @@ Fase 4 no debe declararse completamente cerrada hasta corregirlo.
 - [ ] Psicología/experiencia del paciente aprueba contenido y lenguaje.
 - [x] Pruebas automatizadas impiden reintroducir datos operativos en rutas infantiles.
 
-### 12.3 Validación institucional
+### 12.3 Agente de citas — criterios para la ampliación
+
+- [ ] El agente está disponible solo para cuidador/equipo autorizado.
+- [ ] Las preguntas administrativas usan RAG con citas o abstención.
+- [ ] Los datos de agenda se obtienen mediante herramientas, no desde embeddings.
+- [ ] El optimizador respeta dependencias, ventanas, cupos y reglas autorizadas.
+- [ ] Una propuesta vencida o un cupo modificado no puede confirmarse.
+- [ ] Toda escritura exige confirmación, autorización e idempotencia.
+- [ ] Sin integración institucional se crea una solicitud, nunca una falsa confirmación.
+- [ ] El itinerario y su estado pueden consultarse con conectividad intermitente.
+- [ ] El flujo deriva a una persona cuando no encuentra solución factible.
+- [ ] Las evaluaciones cubren alucinación de cupos, prompt injection, aislamiento y sesgo por procedencia.
+
+### 12.4 Validación institucional
 
 - [ ] Hematología valida estados y flujo de continuidad.
 - [ ] Enfermería valida responsabilidades y escalamiento.
 - [ ] Servicio Social valida derivación y cierre.
-- [ ] Clínica de Día valida fuentes, franjas y umbrales.
+- [ ] Clínica de Día/Programación valida fuente de agenda, franjas, reglas y umbrales.
 - [ ] Psicología valida el espacio infantil.
 - [ ] Familias con conectividad diversa validan comprensión y accesibilidad.
 
@@ -472,6 +592,16 @@ Fase 4 no debe declararse completamente cerrada hasta corregirlo.
 - derivaciones atendidas por Servicio Social;
 - distribución de carga ponderada; y
 - ocupación y saturación por franja.
+
+### Coordinación de citas
+
+- solicitudes resueltas sin llamada adicional;
+- tiempo desde solicitud hasta respuesta humana o confirmación institucional;
+- itinerarios con varias atenciones resueltas en una misma visita cuando sea viable;
+- días de permanencia y tiempo de espera evitados;
+- propuestas rechazadas por cambio de cupo o regla;
+- familias que distinguen correctamente propuesta, solicitud y confirmación; y
+- derivaciones por transporte, alojamiento o imposibilidad de itinerario.
 
 ### Experiencia infantil — guardas, no adherencia
 
@@ -495,7 +625,9 @@ No se usarán como indicadores de impacto:
 - cambiar protocolos, frecuencia o duración del tratamiento;
 - diagnosticar, prescribir o interpretar síntomas/resultados;
 - sustituir el juicio clínico o psicosocial;
-- reasignar médicos o citas automáticamente;
+- reasignar médicos automáticamente;
+- crear, cancelar o reprogramar una cita confirmada sin integración institucional,
+  permiso del actor y confirmación humana;
 - construir una HCE completa;
 - resolver la escasez nacional de especialistas;
 - crear una red social infantil;
@@ -503,41 +635,51 @@ No se usarán como indicadores de impacto:
 - incorporar datos reales sin autorización; y
 - exigir al niño el uso del producto.
 
-## 15. Definición de terminado de Fase 4
+## 15. Cierre técnico y definición de terminado
 
-Fase 4 estará terminada cuando:
+El núcleo técnico de Fase 4 está implementado, desplegado y verificado. Quedan
+como puertas institucionales la revisión del contenido infantil y la prueba con
+los actores del INSNSB.
 
-1. todos los criterios técnicos del núcleo operativo sigan en verde;
-2. exista una identidad `patient` separada, vinculada a un único registro
-   asistencial y autorizada por el apoderado;
-3. los endpoints infantiles deriven `patient_id` desde el token y no permitan
-   acceder a la sesión cuidadora;
-4. `app/child/index.tsx` deje de mostrar hitos y se convierta en un espacio
-   emocional supervisado;
-5. existan pruebas de no exposición de información operativa al menor;
-6. las solicitudes infantiles de apoyo lleguen al adulto correspondiente;
-7. el contenido infantil haya sido revisado por el referente institucional
-   competente;
-8. los pesos de carga y umbrales de capacidad estén identificados claramente
-   como hipótesis o hayan sido calibrados;
-9. la API de Fase 4 haya sido redesplegada y se repitan los circuitos remotos; y
-10. la bitácora registre comandos, resultados, pendientes y decisiones reales.
+La ampliación del agente estará terminada cuando:
+
+1. exista una fuente institucional autorizada de agenda o se apruebe formalmente
+   el flujo de solicitud manual;
+2. `SchedulingGateway` mantenga separados los adaptadores falso, manual e
+   institucional;
+3. conversación, reglas, optimización y escritura sean capas independientes;
+4. toda propuesta tenga procedencia, versión y vencimiento;
+5. toda escritura sea autorizada, confirmada, revalidada, idempotente y auditada;
+6. el resumen del itinerario funcione offline y muestre última sincronización;
+7. las pruebas y evaluaciones de 12.3 estén en verde;
+8. Clínica de Día/Programación y familias validen el flujo con datos ficticios; y
+9. OpenAPI, runbook y bitácora reflejen el despliegue real.
 
 ## 16. Orden de implementación restante
 
-1. Añadir el rol `patient`, vínculo de cuenta, consentimiento y scopes mínimos.
-2. Implementar login infantil, recuperación/suspensión adulta y separación de tokens.
-3. Sustituir `StageMap` y el próximo hito clínico por **Mi espacio con Kinti**.
-4. Añadir acciones infantiles simples para expresar emoción y pedir apoyo.
-5. Crear configuración cuidadora de contenido y banda de desarrollo.
-6. Implementar pruebas de frontera entre Familia, Compañero y Equipo.
-7. Validar contenido con Psicología/experiencia del paciente.
-8. Probar con familias usando datos ficticios.
-9. Regenerar OpenAPI, redesplegar API y cliente de demostración.
+1. Validar con Clínica de Día, Programación y Sistemas la fuente de agenda,
+   estados, identificadores, reglas, SLA y flujo manual alternativo.
+2. Crear el módulo de dominio de citas y el puerto `SchedulingGateway`, primero
+   con adaptadores `FakeSchedulingGateway` y `ManualReviewGateway`.
+3. Añadir las tablas, políticas, migración y retención de solicitudes,
+   restricciones de viaje, propuestas y espejo de cupos.
+4. Implementar herramientas tipadas y el grafo conversacional con confirmación
+   humana; mantener el modelo detrás de `MultimodalModel`.
+5. Incorporar OR-Tools y probar factibilidad/explicabilidad con escenarios
+   sintéticos, especialmente familias que viajan desde otras regiones.
+6. Implementar `TaskQueue` con Supabase Queues y Cron para reintentos,
+   recordatorios y vencimientos.
+7. Añadir al cliente el itinerario offline, estados inequívocos y salida a una
+   persona.
+8. Ejecutar pruebas de contrato, seguridad, concurrencia y evaluación del modelo.
+9. Integrar la agenda real únicamente después de autorización institucional,
+   regenerar OpenAPI, desplegar y verificar el circuito remoto.
 
 ---
 
 > **Síntesis:** Kinti Familia coordina, Kinti Equipo interviene y Kinti
 > Compañero pertenece al paciente y lo acompaña. Separar su usuario protege su
 > identidad y su información; limitar sus permisos evita trasladarle la
-> responsabilidad de sostener el tratamiento.
+> responsabilidad de sostener el tratamiento. El agente ayuda al cuidador a
+> organizar una solicitud, pero la agenda institucional y las personas conservan
+> la decisión final.

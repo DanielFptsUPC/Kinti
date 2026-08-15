@@ -18,12 +18,14 @@ ayuda al equipo asistencial a intervenir antes de que se pierda la continuidad.
   conversacional con política de seguridad determinística.
 - **Fase 4** (`phases/KINTI_FASE_4_COORDINACION_ASISTENCIAL.md`): coordinación
   de recuperación y Servicio Social, carga ponderada por responsable y
-  capacidad ambulatoria visible para decisiones humanas.
+  capacidad ambulatoria visible para decisiones humanas, identidad infantil
+  protegida y arquitectura propuesta para coordinar citas con un agente.
 
 | Documento | Qué contiene |
 |---|---|
 | [`docs/adr/0001`](docs/adr/0001-arquitectura-fase-2.md) | Decisiones de la Fase 2 |
 | [`docs/adr/0002`](docs/adr/0002-supabase-rag-multimodal.md) | Decisiones de Supabase, RAG y multimodalidad |
+| [`docs/adr/0003`](docs/adr/0003-agente-conversacional-citas.md) | Stack y límites del agente conversacional de citas |
 | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) | Despliegue, migración, respaldo, reversión e incidentes |
 | [`phases/BITACORA_FASE_2.md`](phases/BITACORA_FASE_2.md) | Comandos y resultados de la Fase 2 |
 | [`phases/BITACORA_FASE_3.md`](phases/BITACORA_FASE_3.md) | Comandos, resultados y bloqueos de la Fase 3 |
@@ -427,7 +429,8 @@ docker compose up -d db
 ```
 
 Resultados reales de la última ejecución en `phases/BITACORA_FASE_4.md`:
-**335 pruebas en verde** (214 backend + 121 móvil) y un contrato de 37 rutas.
+**396 pruebas en verde** (249 backend + 147 móvil) y un contrato de 45 rutas y
+60 esquemas.
 
 La suite de pytest corre contra **PostgreSQL real** sobre una base separada
 (`kinti_test`), que se crea y se migra desde cero automáticamente. No usa SQLite:
@@ -483,9 +486,12 @@ seguridad antes de trabajar con información real.
 
 ### Específicas de las Fases 3 y 4
 
-- **Supabase y la API base sí están desplegados**, pero los cambios locales de
-  Fase 4 requieren un nuevo despliegue de Render antes de demostrarlos contra la
-  API pública. Véase `phases/BITACORA_FASE_4.md`.
+- **Supabase y la API de Fase 4 están desplegados.** El circuito de Kinti
+  Compañero se verificó contra la API pública; véase
+  `phases/BITACORA_FASE_4.md`.
+- **El agente de coordinación de citas todavía no está implementado.** Su stack,
+  fronteras y orden de construcción están definidos en `docs/adr/0003`; falta
+  acordar la fuente institucional de agenda o el flujo manual equivalente.
 - **El proveedor Vertex está escrito pero no verificado.** Falta una credencial
   GCP con Vertex AI habilitado. Las evaluaciones actuales usan el proveedor
   determinístico y no permiten afirmar el rendimiento de un modelo real.
@@ -508,11 +514,13 @@ seguridad antes de trabajar con información real.
 
 - Validar el flujo con Hematología, Enfermería, Servicio Social, Clínica de Día
   y familias usando datos ficticios.
-- Redesplegar la API de Fase 4 en Render y repetir los circuitos remotos.
-- Integrar y **evaluar** un modelo multimodal GA, registrando identificador,
-  región y fecha en el ADR.
+- Validar con Clínica de Día, Programación y Sistemas la fuente institucional de
+  agenda, sus reglas, estados y un flujo manual de contingencia.
+- Implementar el agente por capas: `SchedulingGateway`, dominio de citas,
+  herramientas tipadas, LangGraph limitado, OR-Tools y cola durable.
+- Integrar y **evaluar** `gemini-2.5-flash` en Vertex AI con function calling,
+  registrando identificador, región, fecha y resultados en el ADR.
 - Confirmar el circuito físico con `npm.cmd run start:tunnel` y Expo Go.
-- Acordar una fuente institucional autorizada de agenda y capacidad.
 - Sustituir la autenticación de piloto por OIDC/SSO institucional real.
 - Sincronización delta y retención de `processed_operations` y `ai_runs`.
 - Notificaciones push con development build.

@@ -22,6 +22,12 @@ import type {
   Patient,
   SessionUser,
 } from "@/domain/entities";
+import type {
+  AppointmentHold,
+  AppointmentRequest,
+  AppointmentSlot,
+  VoiceCallbackRequest,
+} from "@/types";
 
 type Keys<T> = Record<keyof T, true>;
 
@@ -122,6 +128,76 @@ describe("paridad de entidades", () => {
   });
 });
 
+describe("paridad de Kinti Voz", () => {
+  it("AppointmentRequest coincide con AppointmentRequestOut", () => {
+    const keys = typeKeys<AppointmentRequest>({
+      id: true,
+      patientId: true,
+      requestedBy: true,
+      referralId: true,
+      voiceSessionId: true,
+      requestKind: true,
+      source: true,
+      status: true,
+      selectedSlotId: true,
+      proposalExpiresAt: true,
+      externalResult: true,
+      version: true,
+      createdAt: true,
+      updatedAt: true,
+    });
+    expect(schemaProperties("AppointmentRequestOut")).toEqual(keys);
+  });
+
+  it("AppointmentSlot coincide con AppointmentSlotOut", () => {
+    const keys = typeKeys<AppointmentSlot>({
+      id: true,
+      service: true,
+      site: true,
+      spokenLocation: true,
+      startsAt: true,
+      endsAt: true,
+      professionalKey: true,
+      equivalenceGroup: true,
+      availablePlaces: true,
+      availabilityVersion: true,
+      status: true,
+      source: true,
+    });
+    expect(schemaProperties("AppointmentSlotOut")).toEqual(keys);
+  });
+
+  it("AppointmentHold coincide con AppointmentHoldOut", () => {
+    const keys = typeKeys<AppointmentHold>({
+      id: true,
+      requestId: true,
+      slotId: true,
+      status: true,
+      expiresAt: true,
+      availabilityVersion: true,
+    });
+    expect(schemaProperties("AppointmentHoldOut")).toEqual(keys);
+  });
+
+  it("VoiceCallbackRequest coincide con CallbackOut", () => {
+    const keys = typeKeys<VoiceCallbackRequest>({
+      id: true,
+      voiceSessionId: true,
+      actorId: true,
+      patientId: true,
+      reasonCode: true,
+      status: true,
+      slaDueAt: true,
+      assignedTo: true,
+      completedAt: true,
+      outcomeCode: true,
+      createdAt: true,
+      updatedAt: true,
+    });
+    expect(schemaProperties("CallbackOut")).toEqual(keys);
+  });
+});
+
 describe("paridad de comandos sincronizables", () => {
   it("los tipos de operación son exactamente los que acepta el servidor", () => {
     const clientTypes: OperationType[] = [
@@ -169,6 +245,11 @@ describe("cobertura de endpoints", () => {
       "/api/v1/patient/me/feelings",
       "/api/v1/patient/me/support-requests",
       "/api/v1/patient/me/preferences",
+      "/api/v1/appointment-requests",
+      "/api/v1/appointment-requests/{request_id}/proposals",
+      "/api/v1/appointment-requests/{request_id}/confirm",
+      "/api/v1/appointment-requests/{request_id}/human-handoff",
+      "/api/v1/voice/callback-requests",
     ];
     for (const path of used) {
       expect(Object.keys(schema.paths)).toContain(path);

@@ -9,11 +9,13 @@ settings = get_settings()
 
 app = FastAPI(
     title="Kinti API",
-    version="2.0.0",
+    version="2.1.0",
     description=(
-        "API del piloto conectado de Kinti (Fase 2). Datos exclusivamente sintéticos. "
+        "API del piloto conectado de Kinti, incluida Kinti Voz Fase 5A. "
+        "Datos exclusivamente sintéticos. "
         "El semáforo representa riesgo operativo de interrupción de la ruta, no gravedad "
-        "clínica. No diagnostica, no prescribe y no realiza triaje."
+        "clínica. No diagnostica, no prescribe, no realiza triaje y una solicitud "
+        "enviada no equivale a una cita confirmada."
     ),
     openapi_url="/api/v1/openapi.json",
     docs_url="/api/v1/docs",

@@ -1,7 +1,7 @@
 from functools import lru_cache
-from typing import Annotated
+from typing import Annotated, Literal
 
-from pydantic import Field, field_validator
+from pydantic import AliasChoices, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
@@ -89,12 +89,99 @@ class Settings(BaseSettings):
     max_media_bytes: int = 10 * 1024 * 1024
     media_retention_hours: int = 24
 
+    # --- Fase 5: Kinti Voz -------------------------------------------------
+    # Todos los adaptadores externos permanecen apagados por omisión. Un error
+    # de configuración no debe abrir una línea, gastar saldo ni afirmar una
+    # cita institucional inexistente.
+    telephony_provider: Literal["fake", "twilio"] = "fake"
+    # Streaming pertenece a 5B y todavía no tiene una ruta habilitada.
+    voice_mode: Literal["turn"] = "turn"
+    voice_language: str = "es-PE"
+    voice_default_speech_rate: Literal["slow", "normal"] = "slow"
+    voice_max_call_seconds: int = Field(default=480, ge=60, le=1800)
+    voice_max_reprompts: int = Field(default=2, ge=1, le=5)
+    voice_recording_enabled: bool = False
+    voice_transcript_retention_enabled: bool = False
+    voice_callback_enabled: bool = True
+
+    referral_provider: Literal["fake", "manual"] = "fake"
+    scheduling_provider: Literal["fake", "manual"] = "fake"
+    stt_provider: Literal["fake"] = "fake"
+    tts_provider: Literal["fake"] = "fake"
+
+    # Firma del simulador/webhook fake. En staging se genera como secreto; no
+    # autentica a una persona, sólo evita aceptar webhooks fabricados.
+    telephony_webhook_secret: str = "kinti-fake-webhook-solo-desarrollo"
+
+    # Twilio usa nombres de entorno propios, sin el prefijo KINTI_. Se admiten
+    # ambos nombres para no obligar a copiar credenciales entre convenciones.
+    twilio_account_sid: str = Field(
+        default="",
+        validation_alias=AliasChoices("TWILIO_ACCOUNT_SID", "KINTI_TWILIO_ACCOUNT_SID"),
+    )
+    twilio_auth_token: str = Field(
+        default="",
+        validation_alias=AliasChoices("TWILIO_AUTH_TOKEN", "KINTI_TWILIO_AUTH_TOKEN"),
+    )
+    twilio_phone_number: str = Field(
+        default="",
+        validation_alias=AliasChoices("TWILIO_PHONE_NUMBER", "KINTI_TWILIO_PHONE_NUMBER"),
+    )
+    twilio_webhook_base_url: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "TWILIO_WEBHOOK_BASE_URL", "KINTI_TWILIO_WEBHOOK_BASE_URL"
+        ),
+    )
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def _split_origins(cls, value: object) -> object:
         if isinstance(value, str):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
         return value
+
+    @model_validator(mode="after")
+    def _validate_voice_safety_gate(self) -> "Settings":
+        """Impide activar telefonía real o retención sensible a medias."""
+        if self.voice_recording_enabled or self.voice_transcript_retention_enabled:
+            raise ValueError(
+                "Fase 5A no admite grabación ni retención de transcripciones"
+            )
+        if self.environment not in {"local", "test"} and (
+            self.telephony_webhook_secret
+            == "kinti-fake-webhook-solo-desarrollo"
+            or len(self.telephony_webhook_secret) < 32
+        ):
+            raise ValueError(
+                "KINTI_TELEPHONY_WEBHOOK_SECRET debe ser aleatorio fuera de local"
+            )
+        if self.telephony_provider == "twilio":
+            missing = [
+                name
+                for name, value in (
+                    ("TWILIO_ACCOUNT_SID", self.twilio_account_sid),
+                    ("TWILIO_AUTH_TOKEN", self.twilio_auth_token),
+                    ("TWILIO_PHONE_NUMBER", self.twilio_phone_number),
+                    ("TWILIO_WEBHOOK_BASE_URL", self.twilio_webhook_base_url),
+                )
+                if not value
+            ]
+            if missing:
+                raise ValueError(
+                    "KINTI_TELEPHONY_PROVIDER=twilio requiere: " + ", ".join(missing)
+                )
+            if not self.twilio_webhook_base_url.startswith("https://"):
+                raise ValueError("TWILIO_WEBHOOK_BASE_URL debe usar HTTPS")
+            # El adaptador y su firma se prueban de forma contractual, pero el
+            # runtime actual usa una máquina fake en memoria. Activar un número
+            # real antes de disponer de reanudación durable y gateways
+            # institucionales haría posible una solicitud no persistida.
+            raise ValueError(
+                "Twilio permanece bloqueado en Fase 5A hasta conectar workflow "
+                "durable y gateways institucionales autorizados"
+            )
+        return self
 
     @property
     def is_local(self) -> bool:

@@ -10,6 +10,7 @@ from app.api.v1 import (
     notifications,
     operations,
     sync,
+    voice,
 )
 
 api_router = APIRouter(prefix="/api/v1")
@@ -22,3 +23,4 @@ api_router.include_router(companion.router)
 api_router.include_router(assistant.router)
 api_router.include_router(knowledge.router)
 api_router.include_router(sync.router)
+api_router.include_router(voice.router)

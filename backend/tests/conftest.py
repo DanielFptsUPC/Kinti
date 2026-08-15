@@ -32,6 +32,11 @@ os.environ["KINTI_REQUIRE_TLS"] = "false"
 os.environ["KINTI_STORAGE_PROVIDER"] = "local"
 os.environ["KINTI_AI_PROVIDER"] = "fake"
 os.environ["KINTI_EMBEDDING_PROVIDER"] = "fake"
+os.environ["KINTI_TELEPHONY_PROVIDER"] = "fake"
+os.environ["KINTI_TELEPHONY_WEBHOOK_SECRET"] = "test-secret"
+os.environ["KINTI_REFERRAL_PROVIDER"] = "fake"
+os.environ["KINTI_SCHEDULING_PROVIDER"] = "fake"
+os.environ["KINTI_SEED_PASSWORD"] = "Kinti.Demo.2026"
 os.environ[
     "KINTI_JWT_SECRET"
 ] = "secreto-de-pruebas-suficientemente-largo-para-hmac-sha256"
@@ -46,6 +51,7 @@ from httpx import ASGITransport, AsyncClient  # noqa: E402
 from sqlalchemy import text  # noqa: E402
 
 from alembic import command  # noqa: E402
+from app.api.v1.voice import get_voice_workflow  # noqa: E402
 from app.core.database import SessionLocal, engine  # noqa: E402
 from app.main import app  # noqa: E402
 from app.seed import (  # noqa: E402
@@ -121,6 +127,14 @@ async def clean_tables(database) -> None:
             joined = ", ".join(f'"{t}"' for t in tables)
             await conn.execute(text(f"TRUNCATE TABLE {joined} CASCADE"))
     yield
+
+
+@pytest.fixture(autouse=True)
+def clean_voice_runtime() -> None:
+    """El estado fake en memoria debe tener la misma vida que la BD de cada prueba."""
+    get_voice_workflow.cache_clear()
+    yield
+    get_voice_workflow.cache_clear()
 
 
 @pytest.fixture

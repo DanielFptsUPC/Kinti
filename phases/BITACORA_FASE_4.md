@@ -537,3 +537,46 @@ Lo que queda ya no es código. En orden:
 
 El despliegue ya no es un paso pendiente ni manual: cada `push` a `main`
 reconstruye la imagen y el arranque aplica su propia migración.
+
+---
+
+## Paso 11 — Arquitectura objetivo del agente de coordinación de citas
+
+La entrevista médica añadió una necesidad concreta: ayudar a las familias a
+organizar citas y turnos, especialmente cuando deben coordinar viaje,
+alojamiento y varias atenciones. Esto amplía Fase 4, pero no autoriza a un LLM a
+operar la agenda.
+
+Se creó `docs/adr/0003-agente-conversacional-citas.md` y se actualizó el alcance
+2.1 con estas decisiones:
+
+- conservar Expo, FastAPI, Supabase/PostgreSQL, Render y el puerto
+  `MultimodalModel` existentes;
+- usar inicialmente `gemini-2.5-flash` GA en Vertex AI mediante `google-genai`;
+- limitar LangGraph al estado conversacional, las pausas y la confirmación;
+- mantener autorización y reglas dentro del dominio FastAPI;
+- resolver itinerarios con OR-Tools CP-SAT, no con el modelo generativo;
+- encapsular la agenda detrás de `SchedulingGateway`;
+- distinguir propuesta, solicitud enviada y cita institucional confirmada; y
+- usar un puerto `TaskQueue` con Supabase Queues/Cron para el piloto.
+
+El agente pertenece a Kinti Familia. La cuenta infantil `patient` no accede a
+las herramientas de citas. Si no existe una integración autorizada, Kinti crea
+una solicitud para revisión humana y nunca afirma que una cita está confirmada.
+
+El dato de que aproximadamente 50 % de las familias procede de otras regiones
+se conserva como **hipótesis de entrevista**, no como estadística institucional,
+hasta que Estadística/Calidad lo valide.
+
+### Estado de esta ampliación
+
+| Elemento | Estado |
+|---|---|
+| ADR y arquitectura objetivo | ✅ documentados |
+| Fuente institucional de agenda | ⏳ pendiente |
+| `SchedulingGateway` y dominio de citas | ⏳ no implementados |
+| LangGraph, OR-Tools y cola durable | ⏳ no instalados ni implementados |
+| Evaluación con familias y Programación | ⏳ pendiente |
+
+No se modificó código ni se añadieron dependencias en este paso documental. Las
+cifras verificadas permanecen en **396 pruebas**, **45 rutas** y **60 esquemas**.

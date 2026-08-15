@@ -146,6 +146,506 @@
         "title": "AlertOut",
         "type": "object"
       },
+      "AppointmentConfirmRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "confirmed": {
+            "const": true,
+            "title": "Confirmed",
+            "type": "boolean"
+          },
+          "expectedAvailabilityVersion": {
+            "minimum": 1,
+            "title": "Expectedavailabilityversion",
+            "type": "integer"
+          },
+          "operationId": {
+            "format": "uuid",
+            "title": "Operationid",
+            "type": "string"
+          },
+          "selectedSlotId": {
+            "format": "uuid",
+            "title": "Selectedslotid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "selectedSlotId",
+          "expectedAvailabilityVersion",
+          "confirmed",
+          "operationId"
+        ],
+        "title": "AppointmentConfirmRequest",
+        "type": "object"
+      },
+      "AppointmentConfirmationOut": {
+        "additionalProperties": false,
+        "properties": {
+          "hold": {
+            "$ref": "#/components/schemas/AppointmentHoldOut"
+          },
+          "outcome": {
+            "enum": [
+              "submitted",
+              "confirmed"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "request": {
+            "$ref": "#/components/schemas/AppointmentRequestOut"
+          }
+        },
+        "required": [
+          "request",
+          "hold",
+          "outcome"
+        ],
+        "title": "AppointmentConfirmationOut",
+        "type": "object"
+      },
+      "AppointmentHoldOut": {
+        "additionalProperties": false,
+        "properties": {
+          "availabilityVersion": {
+            "title": "Availabilityversion",
+            "type": "integer"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "title": "Expiresat",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "requestId": {
+            "format": "uuid",
+            "title": "Requestid",
+            "type": "string"
+          },
+          "slotId": {
+            "format": "uuid",
+            "title": "Slotid",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "held",
+              "consumed",
+              "expired",
+              "released"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "requestId",
+          "slotId",
+          "status",
+          "expiresAt",
+          "availabilityVersion"
+        ],
+        "title": "AppointmentHoldOut",
+        "type": "object"
+      },
+      "AppointmentProposalRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "maxOptions": {
+            "default": 2,
+            "maximum": 2,
+            "minimum": 1,
+            "title": "Maxoptions",
+            "type": "integer"
+          },
+          "operationId": {
+            "format": "uuid",
+            "title": "Operationid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operationId"
+        ],
+        "title": "AppointmentProposalRequest",
+        "type": "object"
+      },
+      "AppointmentProposalsOut": {
+        "additionalProperties": false,
+        "properties": {
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/AppointmentSlotOut"
+            },
+            "maxItems": 2,
+            "title": "Options",
+            "type": "array"
+          },
+          "request": {
+            "$ref": "#/components/schemas/AppointmentRequestOut"
+          }
+        },
+        "required": [
+          "request",
+          "options"
+        ],
+        "title": "AppointmentProposalsOut",
+        "type": "object"
+      },
+      "AppointmentRequestCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "arrivalWindowEnd": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arrivalwindowend"
+          },
+          "arrivalWindowStart": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arrivalwindowstart"
+          },
+          "canStayMoreThanOneDay": {
+            "default": false,
+            "title": "Canstaymorethanoneday",
+            "type": "boolean"
+          },
+          "needsLodging": {
+            "default": false,
+            "title": "Needslodging",
+            "type": "boolean"
+          },
+          "needsTransport": {
+            "default": false,
+            "title": "Needstransport",
+            "type": "boolean"
+          },
+          "operationId": {
+            "format": "uuid",
+            "title": "Operationid",
+            "type": "string"
+          },
+          "originProvince": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Originprovince"
+          },
+          "originRegion": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Originregion"
+          },
+          "patientId": {
+            "format": "uuid",
+            "title": "Patientid",
+            "type": "string"
+          },
+          "referralId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Referralid"
+          },
+          "requestKind": {
+            "default": "new",
+            "enum": [
+              "new",
+              "reschedule",
+              "consolidate"
+            ],
+            "title": "Requestkind",
+            "type": "string"
+          },
+          "returnDeadline": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Returndeadline"
+          },
+          "travelMinutes": {
+            "anyOf": [
+              {
+                "maximum": 4320,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Travelminutes"
+          }
+        },
+        "required": [
+          "patientId",
+          "operationId"
+        ],
+        "title": "AppointmentRequestCreate",
+        "type": "object"
+      },
+      "AppointmentRequestOut": {
+        "additionalProperties": false,
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "externalResult": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Externalresult"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "patientId": {
+            "format": "uuid",
+            "title": "Patientid",
+            "type": "string"
+          },
+          "proposalExpiresAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposalexpiresat"
+          },
+          "referralId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Referralid"
+          },
+          "requestKind": {
+            "enum": [
+              "new",
+              "reschedule",
+              "consolidate"
+            ],
+            "title": "Requestkind",
+            "type": "string"
+          },
+          "requestedBy": {
+            "format": "uuid",
+            "title": "Requestedby",
+            "type": "string"
+          },
+          "selectedSlotId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selectedslotid"
+          },
+          "source": {
+            "enum": [
+              "voice",
+              "app",
+              "staff"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "proposal_ready",
+              "awaiting_confirmation",
+              "submitted",
+              "confirmed",
+              "rejected",
+              "expired",
+              "human_handoff"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "voiceSessionId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Voicesessionid"
+          }
+        },
+        "required": [
+          "id",
+          "patientId",
+          "requestedBy",
+          "requestKind",
+          "source",
+          "status",
+          "version",
+          "createdAt",
+          "updatedAt"
+        ],
+        "title": "AppointmentRequestOut",
+        "type": "object"
+      },
+      "AppointmentSlotOut": {
+        "additionalProperties": false,
+        "properties": {
+          "availabilityVersion": {
+            "title": "Availabilityversion",
+            "type": "integer"
+          },
+          "availablePlaces": {
+            "title": "Availableplaces",
+            "type": "integer"
+          },
+          "endsAt": {
+            "format": "date-time",
+            "title": "Endsat",
+            "type": "string"
+          },
+          "equivalenceGroup": {
+            "title": "Equivalencegroup",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "professionalKey": {
+            "title": "Professionalkey",
+            "type": "string"
+          },
+          "service": {
+            "title": "Service",
+            "type": "string"
+          },
+          "site": {
+            "title": "Site",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "spokenLocation": {
+            "title": "Spokenlocation",
+            "type": "string"
+          },
+          "startsAt": {
+            "format": "date-time",
+            "title": "Startsat",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "available",
+              "blocked",
+              "cancelled"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "service",
+          "site",
+          "spokenLocation",
+          "startsAt",
+          "endsAt",
+          "professionalKey",
+          "equivalenceGroup",
+          "availablePlaces",
+          "availabilityVersion",
+          "status",
+          "source"
+        ],
+        "title": "AppointmentSlotOut",
+        "type": "object"
+      },
       "AssistantMessageOut": {
         "properties": {
           "answer": {
@@ -213,7 +713,7 @@
         "type": "object"
       },
       "BootstrapResponse": {
-        "description": "Instant�nea can�nica: todo lo que el cliente necesita para su cach�.",
+        "description": "Instantánea canónica: todo lo que el cliente necesita para su caché.",
         "properties": {
           "alerts": {
             "items": {
@@ -269,6 +769,200 @@
           "serverTime"
         ],
         "title": "BootstrapResponse",
+        "type": "object"
+      },
+      "CallbackCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "contactReference": {
+            "maxLength": 255,
+            "minLength": 8,
+            "title": "Contactreference",
+            "type": "string"
+          },
+          "operationId": {
+            "format": "uuid",
+            "title": "Operationid",
+            "type": "string"
+          },
+          "patientId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patientid"
+          },
+          "reasonCode": {
+            "enum": [
+              "requested_by_caller",
+              "two_comprehension_failures",
+              "clinical_or_safety",
+              "recognition_failed_twice",
+              "workflow_handoff",
+              "provider_failed",
+              "runtime_recovery",
+              "manual_handoff",
+              "identity_unverified"
+            ],
+            "title": "Reasoncode",
+            "type": "string"
+          },
+          "voiceSessionId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Voicesessionid"
+          }
+        },
+        "required": [
+          "contactReference",
+          "reasonCode",
+          "operationId"
+        ],
+        "title": "CallbackCreateRequest",
+        "type": "object"
+      },
+      "CallbackOut": {
+        "additionalProperties": false,
+        "properties": {
+          "actorId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actorid"
+          },
+          "assignedTo": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assignedto"
+          },
+          "completedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completedat"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "outcomeCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcomecode"
+          },
+          "patientId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patientid"
+          },
+          "reasonCode": {
+            "enum": [
+              "requested_by_caller",
+              "two_comprehension_failures",
+              "clinical_or_safety",
+              "recognition_failed_twice",
+              "workflow_handoff",
+              "provider_failed",
+              "runtime_recovery",
+              "manual_handoff",
+              "identity_unverified"
+            ],
+            "title": "Reasoncode",
+            "type": "string"
+          },
+          "slaDueAt": {
+            "format": "date-time",
+            "title": "Sladueat",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "requested",
+              "assigned",
+              "completed",
+              "cancelled",
+              "expired"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          },
+          "voiceSessionId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Voicesessionid"
+          }
+        },
+        "required": [
+          "id",
+          "reasonCode",
+          "status",
+          "slaDueAt",
+          "createdAt",
+          "updatedAt"
+        ],
+        "title": "CallbackOut",
         "type": "object"
       },
       "CapacityResponse": {
@@ -393,7 +1087,7 @@
         "type": "object"
       },
       "CitationOut": {
-        "description": "Cita comprensible: t�tulo, versi�n y secci�n. Sin URLs permanentes.",
+        "description": "Cita comprensible: título, versión y sección. Sin URLs permanentes.",
         "properties": {
           "chunkId": {
             "format": "uuid",
@@ -895,8 +1589,63 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "HumanHandoffOut": {
+        "additionalProperties": false,
+        "properties": {
+          "callback": {
+            "$ref": "#/components/schemas/CallbackOut"
+          },
+          "request": {
+            "$ref": "#/components/schemas/AppointmentRequestOut"
+          }
+        },
+        "required": [
+          "request",
+          "callback"
+        ],
+        "title": "HumanHandoffOut",
+        "type": "object"
+      },
+      "HumanHandoffRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "contactReference": {
+            "maxLength": 255,
+            "minLength": 8,
+            "title": "Contactreference",
+            "type": "string"
+          },
+          "operationId": {
+            "format": "uuid",
+            "title": "Operationid",
+            "type": "string"
+          },
+          "reasonCode": {
+            "enum": [
+              "requested_by_caller",
+              "two_comprehension_failures",
+              "clinical_or_safety",
+              "recognition_failed_twice",
+              "workflow_handoff",
+              "provider_failed",
+              "runtime_recovery",
+              "manual_handoff",
+              "identity_unverified"
+            ],
+            "title": "Reasoncode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reasonCode",
+          "contactReference",
+          "operationId"
+        ],
+        "title": "HumanHandoffRequest",
+        "type": "object"
+      },
       "ImmediatePreparationOut": {
-        "description": "Preparaci�n inmediata **sin** nombre cl�nico del procedimiento.",
+        "description": "Preparación inmediata **sin** nombre clínico del procedimiento.",
         "properties": {
           "bring": {
             "anyOf": [
@@ -1387,7 +2136,7 @@
         "type": "object"
       },
       "PatientLoginRequest": {
-        "description": "El menor entra con alias y PIN. No se le exige correo ni tel�fono.",
+        "description": "El menor entra con alias y PIN. No se le exige correo ni teléfono.",
         "properties": {
           "alias": {
             "maxLength": 60,
@@ -1466,6 +2215,30 @@
           "routeStatus"
         ],
         "title": "PatientOut",
+        "type": "object"
+      },
+      "PresentedOptionOut": {
+        "additionalProperties": false,
+        "properties": {
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "slotId": {
+            "title": "Slotid",
+            "type": "string"
+          },
+          "spokenText": {
+            "title": "Spokentext",
+            "type": "string"
+          }
+        },
+        "required": [
+          "number",
+          "slotId",
+          "spokenText"
+        ],
+        "title": "PresentedOptionOut",
         "type": "object"
       },
       "ProposedActionOut": {
@@ -1555,6 +2328,154 @@
           }
         },
         "title": "ReferSocialWorkRequest",
+        "type": "object"
+      },
+      "ReferralLookupRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "externalIdentifier": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Externalidentifier"
+          },
+          "originFacility": {
+            "anyOf": [
+              {
+                "maxLength": 240,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Originfacility"
+          },
+          "originProvince": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Originprovince"
+          },
+          "originRegion": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Originregion"
+          },
+          "patientId": {
+            "format": "uuid",
+            "title": "Patientid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "patientId"
+        ],
+        "title": "ReferralLookupRequest",
+        "type": "object"
+      },
+      "ReferralOut": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "lastSyncedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lastsyncedat"
+          },
+          "missingRequirements": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missingrequirements",
+            "type": "array"
+          },
+          "originFacility": {
+            "title": "Originfacility",
+            "type": "string"
+          },
+          "originProvince": {
+            "title": "Originprovince",
+            "type": "string"
+          },
+          "originRegion": {
+            "title": "Originregion",
+            "type": "string"
+          },
+          "patientId": {
+            "format": "uuid",
+            "title": "Patientid",
+            "type": "string"
+          },
+          "requestedSpecialty": {
+            "title": "Requestedspecialty",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "received",
+              "in_review",
+              "observed",
+              "approved"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "patientId",
+          "originFacility",
+          "originRegion",
+          "originProvince",
+          "requestedSpecialty",
+          "status",
+          "source",
+          "updatedAt"
+        ],
+        "title": "ReferralOut",
         "type": "object"
       },
       "RefreshRequest": {
@@ -1807,6 +2728,96 @@
           }
         },
         "title": "SendMessageRequest",
+        "type": "object"
+      },
+      "ServiceHourOut": {
+        "additionalProperties": false,
+        "properties": {
+          "closesAt": {
+            "format": "time",
+            "title": "Closesat",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "opensAt": {
+            "format": "time",
+            "title": "Opensat",
+            "type": "string"
+          },
+          "service": {
+            "title": "Service",
+            "type": "string"
+          },
+          "site": {
+            "title": "Site",
+            "type": "string"
+          },
+          "spokenLocation": {
+            "title": "Spokenlocation",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "published",
+              "retired"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          },
+          "validFrom": {
+            "format": "date",
+            "title": "Validfrom",
+            "type": "string"
+          },
+          "validUntil": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Validuntil"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "weekday": {
+            "title": "Weekday",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "service",
+          "site",
+          "spokenLocation",
+          "timezone",
+          "weekday",
+          "opensAt",
+          "closesAt",
+          "validFrom",
+          "version",
+          "status",
+          "updatedAt"
+        ],
+        "title": "ServiceHourOut",
         "type": "object"
       },
       "SessionOut": {
@@ -2345,6 +3356,250 @@
         "title": "VersionPreviewOut",
         "type": "object"
       },
+      "VoiceSessionOut": {
+        "additionalProperties": false,
+        "properties": {
+          "actorId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actorid"
+          },
+          "consentStatus": {
+            "enum": [
+              "unknown",
+              "granted",
+              "declined"
+            ],
+            "title": "Consentstatus",
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "endedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endedat"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "language": {
+            "title": "Language",
+            "type": "string"
+          },
+          "patientId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patientid"
+          },
+          "policyVersion": {
+            "title": "Policyversion",
+            "type": "string"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "repromptCount": {
+            "title": "Repromptcount",
+            "type": "integer"
+          },
+          "speechRate": {
+            "enum": [
+              "slow",
+              "normal"
+            ],
+            "title": "Speechrate",
+            "type": "string"
+          },
+          "startedAt": {
+            "format": "date-time",
+            "title": "Startedat",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "welcome",
+              "identify_intent",
+              "service_hours",
+              "verify_identity",
+              "find_referral",
+              "explain_referral",
+              "collect_travel",
+              "search_slots",
+              "present_options",
+              "hold_slot",
+              "confirm_action",
+              "revalidate",
+              "submit_request",
+              "request_submitted",
+              "appointment_confirmed",
+              "teach_back",
+              "human_handoff",
+              "completed"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "transferReason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transferreason"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "provider",
+          "state",
+          "language",
+          "speechRate",
+          "consentStatus",
+          "repromptCount",
+          "policyVersion",
+          "version",
+          "startedAt",
+          "createdAt",
+          "updatedAt"
+        ],
+        "title": "VoiceSessionOut",
+        "type": "object"
+      },
+      "VoiceTurnOut": {
+        "additionalProperties": false,
+        "properties": {
+          "allowedDtmf": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Alloweddtmf",
+            "type": "array"
+          },
+          "expectsInput": {
+            "title": "Expectsinput",
+            "type": "boolean"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/PresentedOptionOut"
+            },
+            "title": "Options",
+            "type": "array"
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "enum": [
+                  "DRAFT",
+                  "PROPOSAL_READY",
+                  "AWAITING_CONFIRMATION",
+                  "SUBMITTED",
+                  "CONFIRMED",
+                  "REJECTED",
+                  "EXPIRED",
+                  "HUMAN_HANDOFF"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome"
+          },
+          "prompt": {
+            "title": "Prompt",
+            "type": "string"
+          },
+          "sessionId": {
+            "title": "Sessionid",
+            "type": "string"
+          },
+          "speechRate": {
+            "enum": [
+              "slow",
+              "normal"
+            ],
+            "title": "Speechrate",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "welcome",
+              "identify_intent",
+              "service_hours",
+              "verify_identity",
+              "find_referral",
+              "explain_referral",
+              "collect_travel",
+              "search_slots",
+              "present_options",
+              "hold_slot",
+              "confirm_action",
+              "revalidate",
+              "submit_request",
+              "request_submitted",
+              "appointment_confirmed",
+              "teach_back",
+              "human_handoff",
+              "completed"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sessionId",
+          "state",
+          "prompt",
+          "expectsInput",
+          "speechRate",
+          "allowedDtmf",
+          "options"
+        ],
+        "title": "VoiceTurnOut",
+        "type": "object"
+      },
       "WorkloadResponse": {
         "properties": {
           "disclaimer": {
@@ -2435,9 +3690,9 @@
     }
   },
   "info": {
-    "description": "API del piloto conectado de Kinti (Fase 2). Datos exclusivamente sint�ticos. El sem�foro representa riesgo operativo de interrupci�n de la ruta, no gravedad cl�nica. No diagnostica, no prescribe y no realiza triaje.",
+    "description": "API del piloto conectado de Kinti, incluida Kinti Voz Fase 5A. Datos exclusivamente sintéticos. El semáforo representa riesgo operativo de interrupción de la ruta, no gravedad clínica. No diagnostica, no prescribe, no realiza triaje y una solicitud enviada no equivale a una cita confirmada.",
     "title": "Kinti API",
-    "version": "2.0.0"
+    "version": "2.1.0"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -2663,9 +3918,346 @@
         ]
       }
     },
+    "/api/v1/appointment-requests": {
+      "get": {
+        "operationId": "list_appointment_requests_api_v1_appointment_requests_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "patientId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patientid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AppointmentRequestOut"
+                  },
+                  "title": "Response List Appointment Requests Api V1 Appointment Requests Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Appointment Requests",
+        "tags": [
+          "kinti-voz"
+        ]
+      },
+      "post": {
+        "operationId": "create_appointment_request_api_v1_appointment_requests_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppointmentRequestCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppointmentRequestOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Appointment Request",
+        "tags": [
+          "kinti-voz"
+        ]
+      }
+    },
+    "/api/v1/appointment-requests/{request_id}": {
+      "get": {
+        "operationId": "get_appointment_request_api_v1_appointment_requests__request_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppointmentRequestOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Appointment Request",
+        "tags": [
+          "kinti-voz"
+        ]
+      }
+    },
+    "/api/v1/appointment-requests/{request_id}/confirm": {
+      "post": {
+        "operationId": "confirm_appointment_request_api_v1_appointment_requests__request_id__confirm_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppointmentConfirmRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppointmentConfirmationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Confirm Appointment Request",
+        "tags": [
+          "kinti-voz"
+        ]
+      }
+    },
+    "/api/v1/appointment-requests/{request_id}/human-handoff": {
+      "post": {
+        "operationId": "handoff_appointment_request_api_v1_appointment_requests__request_id__human_handoff_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HumanHandoffRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HumanHandoffOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Handoff Appointment Request",
+        "tags": [
+          "kinti-voz"
+        ]
+      }
+    },
+    "/api/v1/appointment-requests/{request_id}/proposals": {
+      "post": {
+        "operationId": "propose_appointment_slots_api_v1_appointment_requests__request_id__proposals_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppointmentProposalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppointmentProposalsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Propose Appointment Slots",
+        "tags": [
+          "kinti-voz"
+        ]
+      }
+    },
     "/api/v1/assistant/media/upload-intent": {
       "post": {
-        "description": "Reserva una ruta opaca y devuelve una URL firmada de corta duraci�n.\n\nEl nombre no incluye datos de la persona: s�lo un identificador aleatorio.",
+        "description": "Reserva una ruta opaca y devuelve una URL firmada de corta duración.\n\nEl nombre no incluye datos de la persona: sólo un identificador aleatorio.",
         "operationId": "upload_intent_api_v1_assistant_media_upload_intent_post",
         "requestBody": {
           "content": {
@@ -2712,7 +4304,7 @@
     },
     "/api/v1/assistant/messages/{message_id}/confirm-action": {
       "post": {
-        "description": "Convierte una acci�n propuesta en un comando idempotente.\n\nEs el �nico punto donde una conversaci�n escribe. El modelo no llega hasta\naqu�: llega la confirmaci�n expl�cita de la persona.",
+        "description": "Convierte una acción propuesta en un comando idempotente.\n\nEs el único punto donde una conversación escribe. El modelo no llega hasta\naquí: llega la confirmación explícita de la persona.",
         "operationId": "confirm_action_api_v1_assistant_messages__message_id__confirm_action_post",
         "parameters": [
           {
@@ -2964,7 +4556,7 @@
     },
     "/api/v1/auth/logout": {
       "post": {
-        "description": "Cierre de sesi�n del piloto.\n\nLos JWT son de vida corta y sin estado, as� que el borrado efectivo ocurre\nen el cliente: elimina tokens de SecureStore y la cach� local vinculada a la\nsesi�n. Este endpoint existe para que ese contrato quede expl�cito y para\npoder a�adir una lista de revocaci�n sin cambiar el cliente.",
+        "description": "Cierre de sesión del piloto.\n\nLos JWT son de vida corta y sin estado, así que el borrado efectivo ocurre\nen el cliente: elimina tokens de SecureStore y la caché local vinculada a la\nsesión. Este endpoint existe para que ese contrato quede explícito y para\npoder añadir una lista de revocación sin cambiar el cliente.",
         "operationId": "logout_api_v1_auth_logout_post",
         "responses": {
           "204": {
@@ -2984,7 +4576,7 @@
     },
     "/api/v1/auth/patient-login": {
       "post": {
-        "description": "Sesi�n restringida del menor.\n\nEl token lleva `role=patient`; el servidor lo limita a su �nico paciente\nvinculado. **Nunca habilita Kinti Familia ni Kinti Equipo.**",
+        "description": "Sesión restringida del menor.\n\nEl token lleva `role=patient`; el servidor lo limita a su único paciente\nvinculado. **Nunca habilita Kinti Familia ni Kinti Equipo.**",
         "operationId": "patient_login_api_v1_auth_patient_login_post",
         "requestBody": {
           "content": {
@@ -3020,7 +4612,7 @@
         },
         "summary": "Patient Login",
         "tags": [
-          "compa�ero"
+          "compañero"
         ]
       }
     },
@@ -3298,11 +4890,11 @@
         ],
         "summary": "Update Patient Account",
         "tags": [
-          "compa�ero"
+          "compañero"
         ]
       },
       "post": {
-        "description": "Alta de la cuenta infantil, con consentimiento expl�cito del apoderado.",
+        "description": "Alta de la cuenta infantil, con consentimiento explícito del apoderado.",
         "operationId": "activate_patient_account_api_v1_caregiver_patients__patient_id__patient_account_post",
         "parameters": [
           {
@@ -3355,13 +4947,13 @@
         ],
         "summary": "Activate Patient Account",
         "tags": [
-          "compa�ero"
+          "compañero"
         ]
       }
     },
     "/api/v1/caregiver/patients/{patient_id}/support-requests": {
       "get": {
-        "description": "El cuidador recibe las solicitudes, no cada interacci�n del menor.",
+        "description": "El cuidador recibe las solicitudes, no cada interacción del menor.",
         "operationId": "list_patient_support_requests_api_v1_caregiver_patients__patient_id__support_requests_get",
         "parameters": [
           {
@@ -3408,7 +5000,7 @@
         ],
         "summary": "List Patient Support Requests",
         "tags": [
-          "compa�ero"
+          "compañero"
         ]
       }
     },
@@ -3456,7 +5048,7 @@
         ],
         "summary": "Acknowledge Request",
         "tags": [
-          "compa�ero"
+          "compañero"
         ]
       }
     },
@@ -3642,7 +5234,7 @@
     },
     "/api/v1/knowledge/versions/{version_id}/process": {
       "post": {
-        "description": "Extrae, fragmenta y embebe. Deja la versi�n pendiente de revisi�n.",
+        "description": "Extrae, fragmenta y embebe. Deja la versión pendiente de revisión.",
         "operationId": "process_version_api_v1_knowledge_versions__version_id__process_post",
         "parameters": [
           {
@@ -4114,7 +5706,7 @@
         ],
         "summary": "Capacity",
         "tags": [
-          "operaci�n asistencial"
+          "operación asistencial"
         ]
       }
     },
@@ -4140,7 +5732,7 @@
         ],
         "summary": "Social Work",
         "tags": [
-          "operaci�n asistencial"
+          "operación asistencial"
         ]
       }
     },
@@ -4166,7 +5758,7 @@
         ],
         "summary": "Workload",
         "tags": [
-          "operaci�n asistencial"
+          "operación asistencial"
         ]
       }
     },
@@ -4192,13 +5784,13 @@
         ],
         "summary": "Companion View",
         "tags": [
-          "compa�ero"
+          "compañero"
         ]
       }
     },
     "/api/v1/patient/me/feelings": {
       "post": {
-        "description": "El menor registra c�mo se siente. Una interacci�n, sin texto obligatorio.\n\nNo genera alertas ni participa en ninguna priorizaci�n: acompa�a.",
+        "description": "El menor registra cómo se siente. Una interacción, sin texto obligatorio.\n\nNo genera alertas ni participa en ninguna priorización: acompaña.",
         "operationId": "record_own_feeling_api_v1_patient_me_feelings_post",
         "requestBody": {
           "content": {
@@ -4239,7 +5831,7 @@
         ],
         "summary": "Record Own Feeling",
         "tags": [
-          "compa�ero"
+          "compañero"
         ]
       }
     },
@@ -4285,13 +5877,13 @@
         ],
         "summary": "Update Own Preferences",
         "tags": [
-          "compa�ero"
+          "compañero"
         ]
       }
     },
     "/api/v1/patient/me/support-requests": {
       "post": {
-        "description": "�Quiero hablar�, �tengo miedo�, �necesito ayuda�, �quiero compa��a�.\n\nLlega al adulto responsable. El sistema no interpreta la causa.",
+        "description": "«Quiero hablar», «tengo miedo», «necesito ayuda», «quiero compañía».\n\nLlega al adulto responsable. El sistema no interpreta la causa.",
         "operationId": "request_support_api_v1_patient_me_support_requests_post",
         "requestBody": {
           "content": {
@@ -4332,7 +5924,7 @@
         ],
         "summary": "Request Support",
         "tags": [
-          "compa�ero"
+          "compañero"
         ]
       }
     },
@@ -4500,6 +6092,209 @@
         ]
       }
     },
+    "/api/v1/referrals/lookup": {
+      "post": {
+        "operationId": "lookup_referral_api_v1_referrals_lookup_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReferralLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferralOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Lookup Referral",
+        "tags": [
+          "kinti-voz"
+        ]
+      }
+    },
+    "/api/v1/referrals/{referral_id}": {
+      "get": {
+        "operationId": "get_referral_api_v1_referrals__referral_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "referral_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Referral Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferralOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Referral",
+        "tags": [
+          "kinti-voz"
+        ]
+      }
+    },
+    "/api/v1/service-hours": {
+      "get": {
+        "operationId": "service_hours_api_v1_service_hours_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "service",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Service"
+            }
+          },
+          {
+            "in": "query",
+            "name": "site",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Site"
+            }
+          },
+          {
+            "in": "query",
+            "name": "weekday",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 6,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Weekday"
+            }
+          },
+          {
+            "in": "query",
+            "name": "activeOn",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Activeon"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceHourOut"
+                  },
+                  "title": "Response Service Hours Api V1 Service Hours Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Service Hours",
+        "tags": [
+          "kinti-voz"
+        ]
+      }
+    },
     "/api/v1/sync/bootstrap": {
       "get": {
         "operationId": "bootstrap_api_v1_sync_bootstrap_get",
@@ -4522,7 +6317,7 @@
         ],
         "summary": "Bootstrap",
         "tags": [
-          "sincronizaci�n"
+          "sincronización"
         ]
       }
     },
@@ -4568,7 +6363,476 @@
         ],
         "summary": "Push Operations",
         "tags": [
-          "sincronizaci�n"
+          "sincronización"
+        ]
+      }
+    },
+    "/api/v1/voice/callback-requests": {
+      "get": {
+        "operationId": "list_callback_requests_api_v1_voice_callback_requests_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "patientId",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Patientid"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "description": "Reservado para una futura mesa central con autorización explícita",
+            "in": "query",
+            "name": "includeUnverified",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "Reservado para una futura mesa central con autorización explícita",
+              "title": "Includeunverified",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CallbackOut"
+                  },
+                  "title": "Response List Callback Requests Api V1 Voice Callback Requests Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Callback Requests",
+        "tags": [
+          "kinti-voz"
+        ]
+      },
+      "post": {
+        "operationId": "create_callback_request_api_v1_voice_callback_requests_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CallbackCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallbackOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Callback Request",
+        "tags": [
+          "kinti-voz"
+        ]
+      }
+    },
+    "/api/v1/voice/incoming": {
+      "post": {
+        "description": "Inicia un turno firmado. Twilio recibe XML; el proveedor fake, JSON.",
+        "operationId": "voice_incoming_api_v1_voice_incoming_post",
+        "parameters": [
+          {
+            "description": "Obligatoria cuando el proveedor es Twilio.",
+            "in": "header",
+            "name": "X-Twilio-Signature",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "HMAC-SHA256 obligatorio para el proveedor fake HTTP.",
+            "in": "header",
+            "name": "X-Kinti-Signature",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "description": "Inicio firmado del proveedor fake, sólo con un identificador sintético.",
+                "properties": {
+                  "providerSessionId": {
+                    "maxLength": 160,
+                    "minLength": 1,
+                    "title": "Providersessionid",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "providerSessionId"
+                ],
+                "title": "VoiceIncomingJsonRequest",
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "CallSid": {
+                    "type": "string"
+                  },
+                  "From": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceTurnOut"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "JSON fake o TwiML firmado"
+          }
+        },
+        "summary": "Voice Incoming",
+        "tags": [
+          "kinti-voz"
+        ]
+      }
+    },
+    "/api/v1/voice/sessions/{session_id}": {
+      "get": {
+        "operationId": "get_voice_session_api_v1_voice_sessions__session_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceSessionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Voice Session",
+        "tags": [
+          "kinti-voz"
+        ]
+      }
+    },
+    "/api/v1/voice/status": {
+      "post": {
+        "description": "Registra estado estructurado; un fallo abre callback, nunca una cita.",
+        "operationId": "voice_status_api_v1_voice_status_post",
+        "parameters": [
+          {
+            "description": "Obligatoria cuando el proveedor es Twilio.",
+            "in": "header",
+            "name": "X-Twilio-Signature",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "HMAC-SHA256 obligatorio para el proveedor fake HTTP.",
+            "in": "header",
+            "name": "X-Kinti-Signature",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "eventId": {
+                    "maxLength": 80,
+                    "minLength": 1,
+                    "title": "Eventid",
+                    "type": "string"
+                  },
+                  "providerSessionId": {
+                    "maxLength": 160,
+                    "minLength": 1,
+                    "title": "Providersessionid",
+                    "type": "string"
+                  },
+                  "status": {
+                    "enum": [
+                      "initiated",
+                      "ringing",
+                      "in_progress",
+                      "completed",
+                      "failed"
+                    ],
+                    "title": "Status",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "providerSessionId",
+                  "eventId",
+                  "status"
+                ],
+                "title": "VoiceStatusJsonRequest",
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "CallSid": {
+                    "type": "string"
+                  },
+                  "CallStatus": {
+                    "type": "string"
+                  },
+                  "From": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Voice Status",
+        "tags": [
+          "kinti-voz"
+        ]
+      }
+    },
+    "/api/v1/voice/turn": {
+      "post": {
+        "description": "Procesa voz o DTMF con la misma máquina, sin persistir lo pronunciado.",
+        "operationId": "voice_turn_api_v1_voice_turn_post",
+        "parameters": [
+          {
+            "description": "Obligatoria cuando el proveedor es Twilio.",
+            "in": "header",
+            "name": "X-Twilio-Signature",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "HMAC-SHA256 obligatorio para el proveedor fake HTTP.",
+            "in": "header",
+            "name": "X-Kinti-Signature",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "description": "Payload firmado del adaptador fake; el simulador puro no usa HTTP.",
+                "properties": {
+                  "eventId": {
+                    "maxLength": 80,
+                    "minLength": 1,
+                    "title": "Eventid",
+                    "type": "string"
+                  },
+                  "modality": {
+                    "enum": [
+                      "speech",
+                      "dtmf"
+                    ],
+                    "title": "Modality",
+                    "type": "string"
+                  },
+                  "sessionId": {
+                    "format": "uuid",
+                    "title": "Sessionid",
+                    "type": "string"
+                  },
+                  "value": {
+                    "maxLength": 500,
+                    "title": "Value",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "sessionId",
+                  "eventId",
+                  "modality",
+                  "value"
+                ],
+                "title": "VoiceTurnJsonRequest",
+                "type": "object"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "CallSid": {
+                    "type": "string"
+                  },
+                  "Digits": {
+                    "maxLength": 20,
+                    "type": "string"
+                  },
+                  "SpeechResult": {
+                    "maxLength": 500,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceTurnOut"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "JSON fake o TwiML firmado"
+          }
+        },
+        "summary": "Voice Turn",
+        "tags": [
+          "kinti-voz"
         ]
       }
     },
@@ -4599,7 +6863,7 @@
     },
     "/health/db": {
       "get": {
-        "description": "Diagn�stico de la conexi�n a la base.\n\nExiste porque un 500 opaco en un despliegue remoto es imposible de resolver\nsin acceso a los logs: este endpoint convierte el fallo en un diagn�stico\naccionable.\n\nNunca devuelve la contrase�a, el usuario ni la cadena completa. S�lo el host,\nel tipo de error y una pista de qu� revisar.",
+        "description": "Diagnóstico de la conexión a la base.\n\nExiste porque un 500 opaco en un despliegue remoto es imposible de resolver\nsin acceso a los logs: este endpoint convierte el fallo en un diagnóstico\naccionable.\n\nNunca devuelve la contraseña, el usuario ni la cadena completa. Sólo el host,\nel tipo de error y una pista de qué revisar.",
         "operationId": "health_db_health_db_get",
         "responses": {
           "200": {

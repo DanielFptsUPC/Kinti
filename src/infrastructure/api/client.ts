@@ -21,6 +21,17 @@ import type {
   SupportRequestType,
   SyncOperationResult,
 } from "@/domain/entities";
+import type {
+  AppointmentConfirmation,
+  AppointmentHandoff,
+  AppointmentProposals,
+  AppointmentRequest,
+  ConfirmAppointmentRequestInput,
+  CreateAppointmentRequestInput,
+  HandoffAppointmentRequestInput,
+  PrepareAppointmentProposalsInput,
+  VoiceCallbackRequest,
+} from "@/types";
 import {
   clearTokens,
   getAccessToken,
@@ -254,6 +265,61 @@ export const api = {
       request<OperationsDashboard["socialWork"]>("/operations/social-work"),
     ]);
     return { workload, capacity, socialWork };
+  },
+
+  // ----------------------------------------------------------- Kinti Voz
+
+  /**
+   * Vista adulta de solicitudes de un paciente autorizado. El rol `patient`
+   * no dispone de ninguna variante `/patient/me` para estos recursos.
+   */
+  async appointmentRequests(patientId: string): Promise<AppointmentRequest[]> {
+    return request<AppointmentRequest[]>(
+      `/appointment-requests?patientId=${encodeURIComponent(patientId)}`,
+    );
+  },
+
+  async createAppointmentRequest(
+    input: CreateAppointmentRequestInput,
+  ): Promise<AppointmentRequest> {
+    return request<AppointmentRequest>("/appointment-requests", {
+      method: "POST",
+      body: input,
+    });
+  },
+
+  async prepareAppointmentProposals(
+    requestId: string,
+    input: PrepareAppointmentProposalsInput,
+  ): Promise<AppointmentProposals> {
+    return request<AppointmentProposals>(
+      `/appointment-requests/${encodeURIComponent(requestId)}/proposals`,
+      { method: "POST", body: input },
+    );
+  },
+
+  async confirmAppointmentRequest(
+    requestId: string,
+    input: ConfirmAppointmentRequestInput,
+  ): Promise<AppointmentConfirmation> {
+    return request<AppointmentConfirmation>(
+      `/appointment-requests/${encodeURIComponent(requestId)}/confirm`,
+      { method: "POST", body: input },
+    );
+  },
+
+  async handoffAppointmentRequest(
+    requestId: string,
+    input: HandoffAppointmentRequestInput,
+  ): Promise<AppointmentHandoff> {
+    return request<AppointmentHandoff>(
+      `/appointment-requests/${encodeURIComponent(requestId)}/human-handoff`,
+      { method: "POST", body: input },
+    );
+  },
+
+  async voiceCallbackRequests(): Promise<VoiceCallbackRequest[]> {
+    return request<VoiceCallbackRequest[]>("/voice/callback-requests");
   },
 
   // ------------------------------- administración adulta del espacio infantil
