@@ -26,9 +26,11 @@ export default function CaregiverLayout() {
         name="assistant"
         options={{ title: "Kinti", tabBarIcon: tabIcon("chatbubble-ellipses") }}
       />
+      {/* Oculta de la barra por ahora, junto con el resto del acceso al
+          espacio del paciente. La ruta y la pantalla siguen intactas. */}
       <Tabs.Screen
         name="companion"
-        options={{ title: "Su espacio", tabBarIcon: tabIcon("happy") }}
+        options={{ title: "Su espacio", tabBarIcon: tabIcon("happy"), href: null }}
       />
       <Tabs.Screen
         name="help"
