@@ -14,6 +14,7 @@ from app.api.v1 import schemas
 from app.core.errors import DomainError, invalid
 from app.modules.assistant.providers import build_embeddings, build_media_storage
 from app.modules.knowledge import ingestion
+from app.modules.knowledge.content import KNOWLEDGE_BUCKET
 from app.modules.knowledge.models import (
     KnowledgeChunk,
     KnowledgeDocument,
@@ -21,8 +22,6 @@ from app.modules.knowledge.models import (
 )
 
 router = APIRouter(tags=["conocimiento"])
-
-KNOWLEDGE_BUCKET = "kinti-knowledge-sources"
 
 
 def _document_out(document: KnowledgeDocument) -> schemas.DocumentOut:

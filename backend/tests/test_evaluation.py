@@ -18,33 +18,29 @@ from app.modules.assistant.evaluation import (
     format_report,
     gates_passed,
 )
-from app.modules.assistant.fakes import FakeEmbeddingProvider, FakeMultimodalModel
+from app.modules.assistant.fakes import FakeMultimodalModel
 from app.modules.assistant.orchestrator import ConversationOrchestrator
 from app.modules.assistant.ports import RetrievalFilters
+from app.modules.assistant.providers import build_embeddings, reset_for_testing
 from app.modules.identity import service as identity
 from app.modules.knowledge.retriever import PostgresKnowledgeRetriever
-from app.seed import CARE_TEAM_EMAIL, CAREGIVER_MATEO_EMAIL, MATEO_ID
-from tests.test_knowledge import GUIDE, _ingest
-
-CORPUS = (
-    GUIDE
-    + """
-
-# Alojamiento para familias de provincia
-
-Si vienes de provincia, la oficina de apoyo social orienta sobre alojamiento
-temporal. Acércate antes de tu cita para consultar la disponibilidad.
-"""
-)
+from app.seed import CAREGIVER_MATEO_EMAIL, MATEO_ID
+from app.seed_knowledge import seed_knowledge
 
 
 @pytest.fixture
 async def evaluated(session, seeded):
-    """Publica el corpus y devuelve un orquestador listo para evaluar."""
-    embeddings = FakeEmbeddingProvider()
-    team = await identity.get_by_email(session, CARE_TEAM_EMAIL)
-    await _ingest(session, team, embeddings, text=CORPUS, slug="corpus-eval", version="1.0")
+    """Publica el corpus **real** — el mismo que sirve producción — y devuelve
+    un orquestador listo para evaluar.
 
+    Evaluar contra `content.py` en vez de un fragmento sintético de prueba es
+    deliberado: estas puertas deben medir lo que el asistente puede citar hoy,
+    no una versión reducida que sólo existiera para hacer pasar la suite.
+    """
+    reset_for_testing()
+    await seed_knowledge(session)
+
+    embeddings = build_embeddings()
     caregiver = await identity.get_by_email(session, CAREGIVER_MATEO_EMAIL)
     orchestrator = ConversationOrchestrator(
         session,
@@ -53,7 +49,8 @@ async def evaluated(session, seeded):
         retriever=PostgresKnowledgeRetriever(session),
     )
     conversation = await orchestrator.start_session(user=caregiver, patient_id=MATEO_ID)
-    return orchestrator, caregiver, conversation, embeddings
+    yield orchestrator, caregiver, conversation, embeddings
+    reset_for_testing()
 
 
 async def _run_dataset(evaluated) -> EvalReport:
